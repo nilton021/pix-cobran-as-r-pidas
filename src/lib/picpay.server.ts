@@ -12,7 +12,9 @@ function cfg() {
   if (!base || !clientId || !clientSecret) {
     throw new Error("Credenciais PicPay não configuradas");
   }
-  return { base: base.replace(/\/+$/, ""), clientId, clientSecret };
+  const apiPath = (process.env["PICPAY_API_PATH"] ?? "/v1").trim();
+  const normalizedApiPath = `/${apiPath.replace(/^\/+|\/+$/g, "")}`;
+  return { base: base.replace(/\/+$/, ""), apiPath: normalizedApiPath, clientId, clientSecret };
 }
 
 async function fetchToken(): Promise<string> {
@@ -41,9 +43,9 @@ export async function getToken(): Promise<string> {
 }
 
 async function picpayFetch(path: string, init: RequestInit = {}, retried = false): Promise<Response> {
-  const { base } = cfg();
+  const { base, apiPath } = cfg();
   const token = await getToken();
-  const res = await fetch(`${base}${path}`, {
+  const res = await fetch(`${base}${apiPath}${path}`, {
     ...init,
     headers: { "Content-Type": "application/json", ...(init.headers ?? {}), Authorization: `Bearer ${token}` },
   });
