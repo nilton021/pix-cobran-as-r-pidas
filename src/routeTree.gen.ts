@@ -9,50 +9,230 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
+import { Route as AuthenticatedCobrancasIdRouteImport } from './routes/_authenticated/cobrancas.$id'
+import { Route as AuthenticatedContasIndexRouteImport } from './routes/_authenticated/contas.index'
+import { Route as AuthenticatedContasIdRouteImport } from './routes/_authenticated/contas.$id'
+import { Route as ApiPublicPicpayWebhookRouteImport } from './routes/api/public/picpay-webhook'
+import { Route as ApiPublicReconcileChargesRouteImport } from './routes/api/public/reconcile-charges'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedConfiguracoesRoute =
+  AuthenticatedConfiguracoesRouteImport.update({
+    id: '/configuracoes',
+    path: '/configuracoes',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCobrancasIdRoute =
+  AuthenticatedCobrancasIdRouteImport.update({
+    id: '/cobrancas/$id',
+    path: '/cobrancas/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedContasIndexRoute =
+  AuthenticatedContasIndexRouteImport.update({
+    id: '/contas/',
+    path: '/contas/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedContasIdRoute = AuthenticatedContasIdRouteImport.update({
+  id: '/contas/$id',
+  path: '/contas/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const ApiPublicPicpayWebhookRoute = ApiPublicPicpayWebhookRouteImport.update({
+  id: '/api/public/picpay-webhook',
+  path: '/api/public/picpay-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicReconcileChargesRoute =
+  ApiPublicReconcileChargesRouteImport.update({
+    id: '/api/public/reconcile-charges',
+    path: '/api/public/reconcile-charges',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof AuthenticatedIndexRoute
+  '/login': typeof LoginRoute
+  '/configuracoes': typeof AuthenticatedConfiguracoesRoute
+  '/cobrancas/$id': typeof AuthenticatedCobrancasIdRoute
+  '/contas/$id': typeof AuthenticatedContasIdRoute
+  '/api/public/picpay-webhook': typeof ApiPublicPicpayWebhookRoute
+  '/api/public/reconcile-charges': typeof ApiPublicReconcileChargesRoute
+  '/contas/': typeof AuthenticatedContasIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/configuracoes': typeof AuthenticatedConfiguracoesRoute
+  '/': typeof AuthenticatedIndexRoute
+  '/cobrancas/$id': typeof AuthenticatedCobrancasIdRoute
+  '/contas/$id': typeof AuthenticatedContasIdRoute
+  '/api/public/picpay-webhook': typeof ApiPublicPicpayWebhookRoute
+  '/api/public/reconcile-charges': typeof ApiPublicReconcileChargesRoute
+  '/contas': typeof AuthenticatedContasIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/login': typeof LoginRoute
+  '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
+  '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/cobrancas/$id': typeof AuthenticatedCobrancasIdRoute
+  '/_authenticated/contas/$id': typeof AuthenticatedContasIdRoute
+  '/api/public/picpay-webhook': typeof ApiPublicPicpayWebhookRoute
+  '/api/public/reconcile-charges': typeof ApiPublicReconcileChargesRoute
+  '/_authenticated/contas/': typeof AuthenticatedContasIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/configuracoes'
+    | '/cobrancas/$id'
+    | '/contas/$id'
+    | '/api/public/picpay-webhook'
+    | '/api/public/reconcile-charges'
+    | '/contas/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/login'
+    | '/configuracoes'
+    | '/'
+    | '/cobrancas/$id'
+    | '/contas/$id'
+    | '/api/public/picpay-webhook'
+    | '/api/public/reconcile-charges'
+    | '/contas'
+  id:
+    | '__root__'
+    | '/_authenticated'
+    | '/login'
+    | '/_authenticated/configuracoes'
+    | '/_authenticated/'
+    | '/_authenticated/cobrancas/$id'
+    | '/_authenticated/contas/$id'
+    | '/api/public/picpay-webhook'
+    | '/api/public/reconcile-charges'
+    | '/_authenticated/contas/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  LoginRoute: typeof LoginRoute
+  ApiPublicPicpayWebhookRoute: typeof ApiPublicPicpayWebhookRoute
+  ApiPublicReconcileChargesRoute: typeof ApiPublicReconcileChargesRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/': {
+      id: '/_authenticated/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+      preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/configuracoes': {
+      id: '/_authenticated/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/configuracoes'
+      preLoaderRoute: typeof AuthenticatedConfiguracoesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/cobrancas/$id': {
+      id: '/_authenticated/cobrancas/$id'
+      path: '/cobrancas/$id'
+      fullPath: '/cobrancas/$id'
+      preLoaderRoute: typeof AuthenticatedCobrancasIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/contas/': {
+      id: '/_authenticated/contas/'
+      path: '/contas'
+      fullPath: '/contas/'
+      preLoaderRoute: typeof AuthenticatedContasIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/contas/$id': {
+      id: '/_authenticated/contas/$id'
+      path: '/contas/$id'
+      fullPath: '/contas/$id'
+      preLoaderRoute: typeof AuthenticatedContasIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/public/picpay-webhook': {
+      id: '/api/public/picpay-webhook'
+      path: '/api/public/picpay-webhook'
+      fullPath: '/api/public/picpay-webhook'
+      preLoaderRoute: typeof ApiPublicPicpayWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/reconcile-charges': {
+      id: '/api/public/reconcile-charges'
+      path: '/api/public/reconcile-charges'
+      fullPath: '/api/public/reconcile-charges'
+      preLoaderRoute: typeof ApiPublicReconcileChargesRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedCobrancasIdRoute: typeof AuthenticatedCobrancasIdRoute
+  AuthenticatedContasIdRoute: typeof AuthenticatedContasIdRoute
+  AuthenticatedContasIndexRoute: typeof AuthenticatedContasIndexRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
+  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedCobrancasIdRoute: AuthenticatedCobrancasIdRoute,
+  AuthenticatedContasIdRoute: AuthenticatedContasIdRoute,
+  AuthenticatedContasIndexRoute: AuthenticatedContasIndexRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  LoginRoute: LoginRoute,
+  ApiPublicPicpayWebhookRoute: ApiPublicPicpayWebhookRoute,
+  ApiPublicReconcileChargesRoute: ApiPublicReconcileChargesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
