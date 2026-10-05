@@ -9,15 +9,9 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiPublicPicpayWebhookRouteImport } from './routes/api/public/picpay-webhook'
 import { Route as ApiPublicReconcileChargesRouteImport } from './routes/api/public/reconcile-charges'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiPublicPicpayWebhookRoute = ApiPublicPicpayWebhookRouteImport.update({
   id: '/api/public/picpay-webhook',
   path: '/api/public/picpay-webhook',
@@ -31,49 +25,34 @@ const ApiPublicReconcileChargesRoute =
   } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
   '/api/public/picpay-webhook': typeof ApiPublicPicpayWebhookRoute
   '/api/public/reconcile-charges': typeof ApiPublicReconcileChargesRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
   '/api/public/picpay-webhook': typeof ApiPublicPicpayWebhookRoute
   '/api/public/reconcile-charges': typeof ApiPublicReconcileChargesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
   '/api/public/picpay-webhook': typeof ApiPublicPicpayWebhookRoute
   '/api/public/reconcile-charges': typeof ApiPublicReconcileChargesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    '/' | '/api/public/picpay-webhook' | '/api/public/reconcile-charges'
+  fullPaths: '/api/public/picpay-webhook' | '/api/public/reconcile-charges'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/public/picpay-webhook' | '/api/public/reconcile-charges'
+  to: '/api/public/picpay-webhook' | '/api/public/reconcile-charges'
   id:
-    | '__root__'
-    | '/'
-    | '/api/public/picpay-webhook'
-    | '/api/public/reconcile-charges'
+    '__root__' | '/api/public/picpay-webhook' | '/api/public/reconcile-charges'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
   ApiPublicPicpayWebhookRoute: typeof ApiPublicPicpayWebhookRoute
   ApiPublicReconcileChargesRoute: typeof ApiPublicReconcileChargesRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/picpay-webhook': {
       id: '/api/public/picpay-webhook'
       path: '/api/public/picpay-webhook'
@@ -92,7 +71,6 @@ declare module '@tanstack/react-router' {
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
   ApiPublicPicpayWebhookRoute: ApiPublicPicpayWebhookRoute,
   ApiPublicReconcileChargesRoute: ApiPublicReconcileChargesRoute,
 }
