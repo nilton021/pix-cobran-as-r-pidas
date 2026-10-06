@@ -139,7 +139,8 @@ export const Route = createFileRoute("/api/v1/charges")({
               .single();
             if (error || !updated) throw new Error("Não foi possível finalizar a cobrança");
             await completeIdempotencyKey(auth.apiKeyId, idempotencyKey, charge.id, 201);
-            await recordApiAudit(audit, { route: "/api/v1/charges", method: "POST", statusCode: 201, eventType: "charge_created" });\n            return Response.json(updated, { status: 201 });
+            await recordApiAudit(audit, { route: "/api/v1/charges", method: "POST", statusCode: 201, eventType: "charge_created" });
+            return Response.json(updated, { status: 201 });
           } catch (error) {
             await releaseIdempotencyKey(auth.apiKeyId, idempotencyKey);
             const msg = error instanceof PicPayError ? `${error.message}: ${error.body.slice(0, 300)}` : (error as Error).message;
