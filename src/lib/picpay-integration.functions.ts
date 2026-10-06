@@ -3,7 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const settingsSchema = z.object({
-  accountId: z.string().uuid(),
+  accountId: z.string().uuid().optional(),
 });
 
 const saveSchema = z.object({
@@ -21,11 +21,16 @@ export const getPicPaySettings = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => settingsSchema.parse(d))
   .handler(async ({ data, context }) => {
-    const { data: account, error: accountError } = await context.supabase
+    let accountQuery = context.supabase
       .from("accounts")
       .select("id, name")
-      .eq("id", data.accountId)
-      .maybeSingle();
+      .order("created_at", { ascending: true })
+      .limit(1);
+
+    if (data.accountId) accountQuery = accountQuery.eq("id", data.accountId);
+
+    const { data: accounts, error: accountError } = await accountQuery;
+    const account = accounts?.[0];
 
     if (accountError || !account) throw new Error("Conta não encontrada");
 
