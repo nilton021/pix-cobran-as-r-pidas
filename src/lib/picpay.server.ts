@@ -14,8 +14,8 @@ function cfg() {
   }
   const apiPath = process.env["PICPAY_API_PATH"]?.trim();
   if (!apiPath) throw new Error("PICPAY_API_PATH não configurado");
-  const normalizedApiPath = `/${apiPath.replace(/^\\/+|\\/+$/g, "")}`;
-  return { base: base.replace(/\\/+$/, ""), apiPath: normalizedApiPath, clientId, clientSecret };
+  const normalizedApiPath = `/${apiPath.replace(/^\/+|\/+$/g, "")}`;
+  return { base: base.replace(/\/+$/, ""), apiPath: normalizedApiPath, clientId, clientSecret };
 }
 
 async function fetchToken(): Promise<string> {
@@ -60,7 +60,7 @@ export class PicPayError extends Error {
 }
 
 export function sanitizeName(name: string): string {
-  const clean = name.replace(/[^\\p{L} &\\d]/gu, "").replace(/\\s+/g, " ").trim();
+  const clean = name.replace(/[^\p{L} &\d]/gu, "").replace(/\s+/g, " ").trim();
   return clean || "Cliente";
 }
 
