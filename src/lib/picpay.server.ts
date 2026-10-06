@@ -71,6 +71,7 @@ export type PicPayCharge = {
   merchantChargeId?: string;
   transactions?: Array<{
     status?: string;
+    transactionStatus?: string;
     pix?: { qrCode?: string; qrCodeBase64?: string; endToEndId?: string; payer?: unknown; expiration?: number };
     [k: string]: unknown;
   }>;
@@ -131,7 +132,7 @@ export async function applyStatus(chargeId: string, remote: PicPayCharge, opts: 
   if (error || !current) throw new Error("Cobrança não encontrada");
 
   const tx = remote.transactions?.[0];
-  let next = mapStatus(remote.chargeStatus, tx?.status);
+  let next = mapStatus(remote.chargeStatus, tx?.status ?? tx?.transactionStatus);
   if (opts.forceExpired && next === "PENDING") next = "EXPIRED";
   if (current.status === "PAID" && (next === "PENDING" || next === "EXPIRED")) next = "PAID";
 
