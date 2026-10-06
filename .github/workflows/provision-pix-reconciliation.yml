@@ -1,0 +1,160 @@
+name: Provision Pix reconciliation cron
+
+on:
+  workflow_dispatch:
+    inputs:
+      app_url:
+        description: "HTTPS public URL of the deployed app, without a trailing slash"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  provision:
+    name: Provision Lovable Cloud cron
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Validate inputs
+        env:
+          PIX_APP_URL: ${{ inputs.app_url }}
+        run: |
+          set -euo pipefail
+          case "${PIX_APP_URL}" in
+            https://*) ;;
+            *)
+              echo "::error::app_url must start with https://"
+              exit 1
+              ;;
+          esac
+          if [[ "${PIX_APP_URL}" == */ ]]; then
+            echo "::error::app_url must not end with /"
+            exit 1
+          fi
+
+      - name: Check required database secret
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SUPABASE_DB_URL}" ]; then
+            echo "::error::Missing GitHub Actions secret SUPABASE_DB_URL."
+            exit 1
+          fi
+
+      - name: Provision Vault secrets and cron
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PIX_APP_URL: ${{ inputs.app_url }}
+        run: |
+          set -euo pipefail
+
+          psql "${SUPABASE_DB_URL}" -v ON_ERROR_STOP=1 \
+            -v pix_app_url="${PIX_APP_URL}" <<'SQL'
+          DO $$
+          DECLARE
+            app_secret_id uuid;
+            cron_secret_id uuid;
+            cron_secret_value text;
+          BEGIN
+            IF NOT EXISTS (
+              SELECT 1 FROM pg_extension WHERE extname = 'pg_cron'
+            ) THEN
+              RAISE EXCEPTION 'pg_cron is not enabled';
+            END IF;
+
+            IF NOT EXISTS (
+              SELECT 1 FROM pg_extension WHERE extname = 'pg_net'
+            ) THEN
+              RAISE EXCEPTION 'pg_net is not enabled';
+            END IF;
+
+            IF NOT EXISTS (
+              SELECT 1 FROM pg_extension WHERE extname = 'supabase_vault'
+            ) THEN
+              RAISE EXCEPTION 'supabase_vault is not enabled';
+            END IF;
+
+            SELECT value
+              INTO cron_secret_value
+              FROM public.app_config
+             WHERE key = 'cron_secret';
+
+            IF cron_secret_value IS NULL OR cron_secret_value = '' THEN
+              RAISE EXCEPTION 'public.app_config.cron_secret is missing';
+            END IF;
+
+            SELECT id
+              INTO app_secret_id
+              FROM vault.secrets
+             WHERE name = 'pix_app_url'
+             LIMIT 1;
+
+            IF app_secret_id IS NULL THEN
+              PERFORM vault.create_secret(
+                :'pix_app_url',
+                'pix_app_url',
+                'Public HTTPS URL used by the Pix reconciliation cron'
+              );
+            ELSE
+              PERFORM vault.update_secret(
+                app_secret_id,
+                :'pix_app_url',
+                'pix_app_url',
+                'Public HTTPS URL used by the Pix reconciliation cron'
+              );
+            END IF;
+
+            SELECT id
+              INTO cron_secret_id
+              FROM vault.secrets
+             WHERE name = 'pix_cron_secret'
+             LIMIT 1;
+
+            IF cron_secret_id IS NULL THEN
+              PERFORM vault.create_secret(
+                cron_secret_value,
+                'pix_cron_secret',
+                'Internal secret used by the Pix reconciliation endpoint'
+              );
+            ELSE
+              PERFORM vault.update_secret(
+                cron_secret_id,
+                cron_secret_value,
+                'pix_cron_secret',
+                'Internal secret used by the Pix reconciliation endpoint'
+              );
+            END IF;
+          END
+          $$;
+
+          SELECT cron.schedule(
+            'pix-charge-reconciliation',
+            '*/5 * * * *',
+            $job$
+              SELECT net.http_post(
+                url := (
+                  SELECT decrypted_secret
+                    FROM vault.decrypted_secrets
+                   WHERE name = 'pix_app_url'
+                ) || '/api/public/reconcile-charges',
+                headers := jsonb_build_object(
+                  'Content-Type', 'application/json',
+                  'x-cron-secret', (
+                    SELECT decrypted_secret
+                      FROM vault.decrypted_secrets
+                     WHERE name = 'pix_cron_secret'
+                  )
+                ),
+                body := '{}'::jsonb,
+                timeout_milliseconds := 5000
+              ) AS request_id;
+            $job$
+          );
+
+          SELECT jobid, jobname, schedule, active
+            FROM cron.job
+           WHERE jobname = 'pix-charge-reconciliation';
+          SQL
