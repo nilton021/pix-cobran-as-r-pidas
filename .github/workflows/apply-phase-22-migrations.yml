@@ -1,0 +1,80 @@
+name: Apply Phase 22 database migrations
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Apply pending migrations in one PostgreSQL session
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_DB_URL}" || { echo "SUPABASE_DB_URL não configurado"; exit 1; }
+          psql --version
+
+          psql "${SUPABASE_DB_URL}" -X -v ON_ERROR_STOP=1 <<'SQL'
+          begin;
+
+          select to_regclass('public.api_rate_limit_buckets') is not null as migration_0009_done \gset
+          \if :migration_0009_done
+            \echo '0009 já aplicada; validando função'
+          \else
+            \echo 'Aplicando 0009'
+            \i drizzle/migrations/0009_api_rate_limits.sql
+          \endif
+
+          select to_regclass('public.api_idempotency_keys') is not null as migration_0010_done \gset
+          \if :migration_0010_done
+            \echo '0010 já aplicada'
+          \else
+            \echo 'Aplicando 0010'
+            \i drizzle/migrations/0010_api_idempotency.sql
+          \endif
+
+          select to_regclass('public.api_audit_events') is not null as migration_0011_done \gset
+          \if :migration_0011_done
+            \echo '0011 já aplicada'
+          \else
+            \echo 'Aplicando 0011'
+            \i drizzle/migrations/0011_api_audit_events.sql
+          \endif
+
+          \echo 'Aplicando/validando 0014'
+          \i drizzle/migrations/0014_charge_integration_backfill.sql
+
+          commit;
+
+          select
+            to_regclass('public.api_rate_limit_buckets') as rate_limits,
+            to_regclass('public.api_idempotency_keys') as idempotency,
+            to_regclass('public.api_audit_events') as audit_events,
+            to_regclass('public.charges') as charges,
+            (select count(*) from public.charges where payment_integration_id is null) as legacy_charges,
+            exists (
+              select 1 from pg_proc
+              where proname = 'consume_api_rate_limit'
+            ) as rate_limit_function,
+            exists (
+              select 1 from pg_indexes
+              where indexname = 'api_idempotency_created_idx'
+            ) as idempotency_index,
+            exists (
+              select 1 from pg_indexes
+              where indexname = 'api_audit_events_created_idx'
+            ) as audit_index,
+            exists (
+              select 1 from pg_indexes
+              where indexname = 'charges_legacy_backfill_idx'
+            ) as backfill_index;
+          SQL
