@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import type { Json } from "@/integrations/supabase/types";
 
 // Chamado pelo PicPay. O payload é só um gatilho: o status é sempre confirmado na API.
 export const Route = createFileRoute("/api/public/picpay-webhook")({
@@ -12,9 +13,17 @@ export const Route = createFileRoute("/api/public/picpay-webhook")({
           return new Response("Unauthorized", { status: 401 });
         }
 
-        let payload: any = null;
-        try { payload = await request.json(); } catch { return new Response("Bad Request", { status: 400 }); }
-        const merchantChargeId: string | undefined = payload?.data?.merchantChargeId;
+        let payload: Json;
+        try {
+          payload = (await request.json()) as Json;
+        } catch {
+          return new Response("Bad Request", { status: 400 });
+        }
+        const payloadObject = payload && typeof payload === "object" && !Array.isArray(payload) ? payload : null;
+        const data = payloadObject?.data && typeof payloadObject.data === "object" && !Array.isArray(payloadObject.data)
+          ? payloadObject.data
+          : null;
+        const merchantChargeId = typeof data?.merchantChargeId === "string" ? data.merchantChargeId : undefined;
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         await supabaseAdmin.from("webhook_events").insert({
