@@ -12,7 +12,7 @@ const createSchema = z.object({
 export const createCharge = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => createSchema.parse(d))
-  .handler(async ({ data, context }) => {
+.handler(async ({ data, context }) => {
     // Confere propriedade via RLS do usuário
     const { data: account, error } = await context.supabase
       .from("accounts").select("*").eq("id", data.accountId).maybeSingle();
@@ -21,8 +21,25 @@ export const createCharge = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { createPixCharge, PicPayError } = await import("./picpay.server");
 
+    const { data: integrations, error: integrationErr } = await context.supabase
+      .from("payment_integrations")
+      .select("id")
+      .eq("account_id", account.id)
+      .eq("provider", "PICPAY")
+      .eq("status", "ACTIVE");
+
+    if (integrationErr || !integrations || integrations.length !== 1) {
+      throw new Error(
+        integrations?.length
+          ? "É necessário manter exatamente uma integração PicPay ativa para esta conta."
+          : "Nenhuma integração PicPay ativa configurada para esta conta.",
+      );
+    }
+    const paymentIntegrationId = integrations[0].id;
+
     const { data: charge, error: insErr } = await supabaseAdmin.from("charges").insert({
       account_id: account.id,
+      payment_integration_id: paymentIntegrationId,
       amount_cents: data.amountCents,
       description: data.description || null,
       status: "PENDING",
@@ -30,7 +47,7 @@ export const createCharge = createServerFn({ method: "POST" })
     if (insErr || !charge) throw new Error("Não foi possível criar a cobrança");
 
     try {
-      const res = await createPixCharge({
+      const res = await createPixCharge(paymentIntegrationId, {
         merchantChargeId: charge.id,
         customer: {
           name: account.name,
@@ -62,11 +79,16 @@ export const syncCharge = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ chargeId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { data: owned } = await context.supabase.from("charges").select("id").eq("id", data.chargeId).maybeSingle();
+    const { data: owned } = await context.supabase
+      .from("charges")
+      .select("id, payment_integration_id")
+      .eq("id", data.chargeId)
+      .maybeSingle();
     if (!owned) throw new Error("Cobrança não encontrada");
     const { getCharge, applyStatus } = await import("./picpay.server");
+    if (!owned.payment_integration_id) throw new Error("Integração de pagamento não vinculada");
     try {
-      const remote = await getCharge(data.chargeId);
+      const remote = await getCharge(owned.payment_integration_id, data.chargeId);
       return await applyStatus(data.chargeId, remote);
     } catch (e) {
       console.error("[sync-charge] falha", data.chargeId, (e as Error).message);
@@ -79,8 +101,8 @@ export const getWebhookInfo = createServerFn({ method: "GET" })
   .handler(async () => ({
     configured: {
       PICPAY_API_BASE_URL: !!process.env["PICPAY_API_BASE_URL"],
-      PICPAY_CLIENT_ID: !!process.env["PICPAY_CLIENT_ID"],
-      PICPAY_CLIENT_SECRET: !!process.env["PICPAY_CLIENT_SECRET"],
+      PICPAY_CLIENT_ID: false,
+      PICPAY_CLIENT_SECRET: false,
       PICPAY_WEBHOOK_TOKEN: !!process.env["PICPAY_WEBHOOK_TOKEN"],
     },
   }));
