@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
+import { createApiAuditContext, recordApiAudit } from "@/lib/api-audit.server";
 
 const schema = z.object({
   amountCents: z.number().int().min(1),
@@ -138,13 +139,13 @@ export const Route = createFileRoute("/api/v1/charges")({
               .single();
             if (error || !updated) throw new Error("Não foi possível finalizar a cobrança");
             await completeIdempotencyKey(auth.apiKeyId, idempotencyKey, charge.id, 201);
-            return Response.json(updated, { status: 201 });
+            await recordApiAudit(audit, { route: "/api/v1/charges", method: "POST", statusCode: 201, eventType: "charge_created" });\n            return Response.json(updated, { status: 201 });
           } catch (error) {
             await releaseIdempotencyKey(auth.apiKeyId, idempotencyKey);
             const msg = error instanceof PicPayError ? `${error.message}: ${error.body.slice(0, 300)}` : (error as Error).message;
             await supabaseAdmin.from("charges").update({ status: "ERROR", last_error: msg }).eq("id", charge.id);
             console.error("[api/v1/charges] falha", charge.id, msg);
-            return Response.json({ error: "Não foi possível gerar o Pix no PicPay." }, { status: 502 });
+            await recordApiAudit(audit, { route: "/api/v1/charges", method: "POST", statusCode: 502, eventType: "provider_error" });\n            return Response.json({ error: "Não foi possível gerar o Pix no PicPay." }, { status: 502 });
           }
         } catch (error) {
           if (reservationOwner) {
@@ -153,9 +154,9 @@ export const Route = createFileRoute("/api/v1/charges")({
           }
           if (error instanceof z.ZodError) return Response.json({ error: "Dados inválidos", details: error.flatten() }, { status: 400 });
           const message = error instanceof Error ? error.message : "Unauthorized";
-          if (message === "Rate limit indisponível") return Response.json({ error: "Serviço temporariamente indisponível" }, { status: 503 });
-          if (message.startsWith("Unauthorized:")) return Response.json({ error: "Não autorizado" }, { status: 401 });
-          return Response.json({ error: "Não foi possível criar a cobrança" }, { status: 500 });
+          if (message === "Rate limit indisponível") {\n            await recordApiAudit(audit, { route: "/api/v1/charges", method: "POST", statusCode: 503, eventType: "dependency_error" });\n            return Response.json({ error: "Serviço temporariamente indisponível" }, { status: 503 });\n          }
+          if (message.startsWith("Unauthorized:")) {\n            await recordApiAudit(audit, { route: "/api/v1/charges", method: "POST", statusCode: 401, eventType: "authentication_failure" });\n            return Response.json({ error: "Não autorizado" }, { status: 401 });\n          }
+          await recordApiAudit(audit, { route: "/api/v1/charges", method: "POST", statusCode: 500, eventType: "server_error" });\n          return Response.json({ error: "Não foi possível criar a cobrança" }, { status: 500 });
         }
       },
     },
