@@ -10,6 +10,7 @@ const input = z.object({
   environment: z.enum(["SANDBOX", "PRODUCTION"]),
   credential1: z.string().max(4000).optional().default(""),
   credential2: z.string().max(4000).optional().default(""),
+  credential3: z.string().max(4000).optional().default(""),
 });
 
 export const getPaymentSettings = createServerFn({ method: "GET" })
@@ -46,7 +47,7 @@ export const savePaymentIntegration = createServerFn({ method: "POST" })
         p_environment: data.environment,
         p_client_id: data.credential1 || null,
         p_client_secret: data.credential2 || null,
-        p_webhook_secret: "",
+        p_webhook_secret: data.credential3 || null,
       });
       if (rpcError || !id) throw new Error(rpcError?.message || "Não foi possível salvar o PicPay");
       return { integrationId: id };
