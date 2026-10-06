@@ -15,12 +15,57 @@ export const Route = createFileRoute("/api/v1/charges")({
           const { authenticateApiKey } = await import("@/lib/api-key-auth.server");
           const auth = await authenticateApiKey(request);
           const { consumeApiRateLimit, rateLimitResponse } = await import("@/lib/api-rate-limit.server");
-          const rateLimit = await consumeApiRateLimit(auth.apiKeyId, "create_charge");
-          const limited = rateLimitResponse(rateLimit);
-          if (limited) return limited;
           const input = schema.parse(await request.json());
+          const idempotencyKey = request.headers.get("Idempotency-Key")?.trim();
+          if (!idempotencyKey || idempotencyKey.length > 255) {
+            return Response.json({ error: "Idempotency-Key obrigatório e deve ter até 255 caracteres" }, { status: 400 });
+          }
+
+          const {
+            hashIdempotencyPayload,
+            reserveIdempotencyKey,
+            completeIdempotencyKey,
+            releaseIdempotencyKey,
+          } = await import("@/lib/api-idempotency.server");
+          const requestHash = hashIdempotencyPayload(input);
+          const reservation = await reserveIdempotencyKey(auth.apiKeyId, idempotencyKey, requestHash);
+
+          if (reservation.kind === "conflict") {
+            return Response.json(
+              { error: "Idempotency-Key já foi usada com parâmetros diferentes" },
+              { status: 409 },
+            );
+          }
 
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+          if (reservation.kind === "completed") {
+            const { data: existingCharge } = await supabaseAdmin
+              .from("charges")
+              .select("id, amount_cents, description, status, qr_code, qr_code_base64, expires_at, created_at, updated_at")
+              .eq("id", reservation.chargeId)
+              .eq("account_id", auth.accountId)
+              .maybeSingle();
+            if (!existingCharge) return Response.json({ error: "Cobrança não encontrada" }, { status: 404 });
+            return Response.json(existingCharge, { status: reservation.responseStatus });
+          }
+
+          if (reservation.kind === "processing") {
+            return Response.json(
+              { error: "Cobrança com esta Idempotency-Key ainda está sendo processada" },
+              { status: 409, headers: { "Retry-After": "2" } },
+            );
+          }
+
+          try {
+            const { consumeApiRateLimit, rateLimitResponse } = await import("@/lib/api-rate-limit.server");
+            const rateLimit = await consumeApiRateLimit(auth.apiKeyId, "create_charge");
+            const limited = rateLimitResponse(rateLimit);
+            if (limited) {
+              await releaseIdempotencyKey(auth.apiKeyId, idempotencyKey);
+              return limited;
+            }
+
           const { data: account } = await supabaseAdmin
             .from("accounts")
             .select("id, name, email, document, document_type")
@@ -84,8 +129,10 @@ export const Route = createFileRoute("/api/v1/charges")({
               .select("id, amount_cents, description, status, qr_code, qr_code_base64, expires_at, created_at, updated_at")
               .single();
             if (error || !updated) throw new Error("Não foi possível finalizar a cobrança");
+            await completeIdempotencyKey(auth.apiKeyId, idempotencyKey, charge.id, 201);
             return Response.json(updated, { status: 201 });
           } catch (error) {
+            await releaseIdempotencyKey(auth.apiKeyId, idempotencyKey);
             const msg = error instanceof PicPayError ? `${error.message}: ${error.body.slice(0, 300)}` : (error as Error).message;
             await supabaseAdmin.from("charges").update({ status: "ERROR", last_error: msg }).eq("id", charge.id);
             console.error("[api/v1/charges] falha", charge.id, msg);
