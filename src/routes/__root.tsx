@@ -80,16 +80,36 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Pix Charges" },
-      { name: "description", content: "Emita cobranças Pix com QR Code dinâmico via PicPay Business." },
+      {
+        name: "description",
+        content: "Emita cobranças Pix com QR Code dinâmico via PicPay Business.",
+      },
       { property: "og:title", content: "Pix Charges" },
-      { property: "og:description", content: "Emita cobranças Pix com QR Code dinâmico via PicPay Business." },
+      {
+        property: "og:description",
+        content: "Emita cobranças Pix com QR Code dinâmico via PicPay Business.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      ...(process.env["SUPABASE_URL"]
+        ? [{ name: "supabase-url", content: process.env["SUPABASE_URL"] }]
+        : []),
+      ...(process.env["SUPABASE_PUBLISHABLE_KEY"]
+        ? [
+            {
+              name: "supabase-publishable-key",
+              content: process.env["SUPABASE_PUBLISHABLE_KEY"],
+            },
+          ]
+        : []),
     ],
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono&display=swap" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono&display=swap",
+      },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
   }),
