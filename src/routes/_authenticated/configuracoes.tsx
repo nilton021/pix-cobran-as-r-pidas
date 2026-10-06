@@ -45,7 +45,7 @@ function Config() {
       <section className="space-y-3 rounded-xl border bg-card p-5">
         <h2 className="font-bold">Credenciais da API</h2>
         <ol className="list-decimal space-y-1 pl-5 text-sm">
-          <li>No <strong>Painel Lojista</strong>, vá em <strong>Integrações</strong> &gt; <strong>Checkout</strong> &gt; <strong>Gerar Token</strong>.</li>
+          <li>Gere as credenciais da integração PicPay compatível com a <strong>API Pix</strong> no seu Painel Lojista. O nome da integração pode variar conforme o cadastro/conta; <strong>não use “Link de Pagamento - API” nem “TEF com PIX” sem confirmar que são as credenciais da API Pix</strong>.</li>
           <li>Copie o <code>client_id</code> e o <code>client_secret</code>.</li>
           <li>Salve-os nos segredos <code>PICPAY_CLIENT_ID</code> e <code>PICPAY_CLIENT_SECRET</code>.</li>
         </ol>
