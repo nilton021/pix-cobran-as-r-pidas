@@ -47,6 +47,11 @@ create trigger on_auth_user_created_profile
 after insert on auth.users
 for each row execute function public.handle_new_user_profile();
 
+insert into public.profiles(id, full_name)
+select u.id, coalesce(u.raw_user_meta_data ->> 'full_name', '')
+from auth.users u
+on conflict (id) do nothing;
+
 create index if not exists profiles_onboarding_idx
   on public.profiles(onboarding_completed, created_at);
 
