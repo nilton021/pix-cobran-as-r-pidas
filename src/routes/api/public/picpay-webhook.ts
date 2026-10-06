@@ -33,9 +33,15 @@ export const Route = createFileRoute("/api/public/picpay-webhook")({
           payload,
         });
 
-        if (merchantChargeId && /^[0-9a-f-]{36}$/i.test(merchantChargeId)) {
+        if (merchantChargeId && /^[0-9a-f-]{36}$/.test(merchantChargeId)) {
           try {
-            const remote = await getCharge(merchantChargeId);
+            const { data: charge } = await supabaseAdmin
+              .from("charges")
+              .select("id, payment_integration_id")
+              .eq("id", merchantChargeId)
+              .maybeSingle();
+            if (!charge?.payment_integration_id) throw new Error("Cobrança sem integração de pagamento");
+            const remote = await getCharge(charge.payment_integration_id, merchantChargeId);
             await applyStatus(merchantChargeId, remote);
           } catch (e) {
             console.error("[picpay-webhook] falha ao confirmar", merchantChargeId, (e as Error).message);
