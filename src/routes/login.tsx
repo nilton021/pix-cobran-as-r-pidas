@@ -19,7 +19,7 @@ export const Route = createFileRoute("/login")({
   component: Login,
 });
 
-const schema = z.object({
+export const authSchema = z.object({
   fullName: z.string().trim().min(2, "Informe seu nome").max(120),
   email: z.string().email("E-mail inválido"),
   password: z.string().min(12, "A senha deve ter pelo menos 12 caracteres").max(128),
@@ -35,7 +35,7 @@ function Login() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const parsed = schema.safeParse({ fullName: mode === "in" ? "Usuário" : fullName, email, password });
+    const parsed = authSchema.safeParse({ fullName: mode === "in" ? "Usuário" : fullName, email, password });
     if (!parsed.success) return toast.error(parsed.error.issues[0].message);
     setLoading(true);
     try {
