@@ -34,15 +34,36 @@ jobs:
             exit 1
           fi
 
-      - name: Check required database secret
+      - name: Validate database secret
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
           set -euo pipefail
-          if [ -z "${SUPABASE_DB_URL}" ]; then
+
+          DB_URL="$(printf '%s' "${SUPABASE_DB_URL}" | tr -d '\r\n' | xargs)"
+          if [ -z "${DB_URL}" ]; then
             echo "::error::Missing GitHub Actions secret SUPABASE_DB_URL."
             exit 1
           fi
+
+          case "${DB_URL}" in
+            postgresql://*|postgres://*) ;;
+            *)
+              echo "::error::SUPABASE_DB_URL must be a PostgreSQL connection string starting with postgresql:// or postgres://."
+              echo "::error::Do not use only the Supabase host, project URL, password, or pooler hostname."
+              exit 1
+              ;;
+          esac
+
+          case "${DB_URL}" in
+            *"@"*"/"*) ;;
+            *)
+              echo "::error::SUPABASE_DB_URL appears incomplete; it must include credentials, host, and database."
+              exit 1
+              ;;
+          esac
+
+          echo "SUPABASE_DB_URL format validated."
 
       - name: Provision Vault secrets and cron
         env:
@@ -51,7 +72,8 @@ jobs:
         run: |
           set -euo pipefail
 
-          psql "${SUPABASE_DB_URL}" -v ON_ERROR_STOP=1 \
+          DB_URL="$(printf '%s' "${SUPABASE_DB_URL}" | tr -d '\r\n' | xargs)"
+          psql "${DB_URL}" -v ON_ERROR_STOP=1 \
             -v pix_app_url="${PIX_APP_URL}" <<'SQL'
           DO $$
           DECLARE
