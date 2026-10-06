@@ -17,6 +17,23 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
+      - name: Validate inputs
+        env:
+          PIX_APP_URL: ${{ inputs.app_url }}
+        run: |
+          set -euo pipefail
+          case "${PIX_APP_URL}" in
+            https://*) ;;
+            *)
+              echo "::error::app_url must start with https://"
+              exit 1
+              ;;
+          esac
+          if [[ "${PIX_APP_URL}" == */ ]]; then
+            echo "::error::app_url must not end with /"
+            exit 1
+          fi
+
       - name: Check required database secret
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
