@@ -5,6 +5,7 @@ export const Route = createFileRoute("/api/v1/charges/$id")({
   server: {
     handlers: {
       GET: async ({ request, params }) => {
+        const audit = createApiAuditContext(request);
         try {
           const { authenticateApiKey } = await import("@/lib/api-key-auth.server");
           const auth = await authenticateApiKey(request);
@@ -26,12 +27,47 @@ export const Route = createFileRoute("/api/v1/charges/$id")({
             .maybeSingle();
 
           if (error) throw error;
-          if (!charge) return Response.json({ error: "Cobrança não encontrada" }, { status: 404 });
+          if (!charge) {
+            await recordApiAudit(audit, {
+              route: "/api/v1/charges/:id",
+              method: "GET",
+              statusCode: 404,
+              eventType: "charge_not_found",
+            });
+            return Response.json({ error: "Cobrança não encontrada" }, { status: 404 });
+          }
+          await recordApiAudit(audit, {
+            route: "/api/v1/charges/:id",
+            method: "GET",
+            statusCode: 200,
+          });
           return Response.json(charge);
         } catch (error) {
           const message = error instanceof Error ? error.message : "Unauthorized";
-          if (message === "Rate limit indisponível") return Response.json({ error: "Serviço temporariamente indisponível" }, { status: 503 });
-          if (message.startsWith("Unauthorized:")) return Response.json({ error: "Não autorizado" }, { status: 401 });
+          if (message === "Rate limit indisponível") {
+            await recordApiAudit(audit, {
+              route: "/api/v1/charges/:id",
+              method: "GET",
+              statusCode: 503,
+              eventType: "dependency_error",
+            });
+            return Response.json({ error: "Serviço temporariamente indisponível" }, { status: 503 });
+          }
+          if (message.startsWith("Unauthorized:")) {
+            await recordApiAudit(audit, {
+              route: "/api/v1/charges/:id",
+              method: "GET",
+              statusCode: 401,
+              eventType: "authentication_failure",
+            });
+            return Response.json({ error: "Não autorizado" }, { status: 401 });
+          }
+          await recordApiAudit(audit, {
+            route: "/api/v1/charges/:id",
+            method: "GET",
+            statusCode: 500,
+            eventType: "server_error",
+          });
           return Response.json({ error: "Não foi possível consultar a cobrança" }, { status: 500 });
         }
       },
