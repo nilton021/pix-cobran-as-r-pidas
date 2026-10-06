@@ -25,7 +25,7 @@ describe("phase 20 PicPay homologation E2E contracts", () => {
     expect(route).toContain('.eq("account_id", auth.accountId)');
     expect(reconcile).toContain('.not("payment_integration_id", "is", null)');
     expect(reconcile).toContain("getCharge(r.payment_integration_id, r.id)");
-    expect(picpay).toContain("getCharge(integrationId, merchantChargeId)");
+    expect(picpay).toContain("export async function getCharge(\n  integrationId: string,");
   });
 
   it("accepts PAID only for a PIX transaction with the exact charge amount", () => {
