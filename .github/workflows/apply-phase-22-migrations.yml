@@ -20,7 +20,16 @@ jobs:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
           set -euo pipefail
-          test -n "${SUPABASE_DB_URL}" || { echo "SUPABASE_DB_URL não configurado"; exit 1; }
+          DB_URL="$(printf '%s' "${SUPABASE_DB_URL}" | tr -d '\r\n' | xargs)"
+          test -n "${DB_URL}" || { echo "SUPABASE_DB_URL não configurado"; exit 1; }
+          case "${DB_URL}" in
+            postgresql://*|postgres://*) ;;
+            *) echo "SUPABASE_DB_URL inválido: use uma connection string PostgreSQL (postgresql:// ou postgres://)."; exit 1 ;;
+          esac
+          case "${DB_URL}" in
+            *"@"*:*"/"*) ;;
+            *) echo "SUPABASE_DB_URL inválido: a connection string deve conter host, porta e banco."; exit 1 ;;
+          esac
           psql --version
 
           psql "${SUPABASE_DB_URL}" -X -v ON_ERROR_STOP=1 <<'SQL'
