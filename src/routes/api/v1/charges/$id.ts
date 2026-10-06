@@ -6,7 +6,11 @@ export const Route = createFileRoute("/api/v1/charges/$id")({
       GET: async ({ request, params }) => {
         try {
           const { authenticateApiKey } = await import("@/lib/api-key-auth.server");
-          const auth = await authenticateApiKey(request);\n          const { consumeApiRateLimit, rateLimitResponse } = await import("@/lib/api-rate-limit.server");\n          const rateLimit = await consumeApiRateLimit(auth.apiKeyId, "read_charge");\n          const limited = rateLimitResponse(rateLimit);\n          if (limited) return limited;
+          const auth = await authenticateApiKey(request);
+          const { consumeApiRateLimit, rateLimitResponse } = await import("@/lib/api-rate-limit.server");
+          const rateLimit = await consumeApiRateLimit(auth.apiKeyId, "read_charge");
+          const limited = rateLimitResponse(rateLimit);
+          if (limited) return limited;
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const { data: charge, error } = await supabaseAdmin
             .from("charges")
@@ -19,7 +23,8 @@ export const Route = createFileRoute("/api/v1/charges/$id")({
           if (!charge) return Response.json({ error: "Cobrança não encontrada" }, { status: 404 });
           return Response.json(charge);
         } catch (error) {
-          const message = error instanceof Error ? error.message : "Unauthorized";\n          if (message === "Rate limit indisponível") return Response.json({ error: "Serviço temporariamente indisponível" }, { status: 503 });
+          const message = error instanceof Error ? error.message : "Unauthorized";
+          if (message === "Rate limit indisponível") return Response.json({ error: "Serviço temporariamente indisponível" }, { status: 503 });
           if (message.startsWith("Unauthorized:")) return Response.json({ error: "Não autorizado" }, { status: 401 });
           return Response.json({ error: "Não foi possível consultar a cobrança" }, { status: 500 });
         }
