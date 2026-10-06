@@ -6,9 +6,21 @@ import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
-  beforeLoad: async () => {
+  beforeLoad: async ({ location }) => {
     const { data, error } = await supabase.auth.getUser();
     if (error || !data.user) throw redirect({ to: "/login" });
+
+    const { data: accounts, error: accountError } = await supabase
+      .from("accounts")
+      .select("id")
+      .eq("owner_id", data.user.id)
+      .limit(1);
+
+    if (accountError) throw accountError;
+    if (accounts.length === 0 && location.pathname !== "/contas") {
+      throw redirect({ to: "/contas" });
+    }
+
     return { user: data.user };
   },
   component: Layout,
