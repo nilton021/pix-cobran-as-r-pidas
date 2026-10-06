@@ -7,7 +7,9 @@ export const Route = createFileRoute("/api/v1/charges/$id")({
       GET: async ({ request, params }) => {
         try {
           const { authenticateApiKey } = await import("@/lib/api-key-auth.server");
-          const auth = await authenticateApiKey(request);\n          audit.accountId = auth.accountId;\n          audit.apiKeyId = auth.apiKeyId;
+          const auth = await authenticateApiKey(request);
+          audit.accountId = auth.accountId;
+          audit.apiKeyId = auth.apiKeyId;
           const { consumeApiRateLimit, rateLimitResponse } = await import("@/lib/api-rate-limit.server");
           const rateLimit = await consumeApiRateLimit(auth.apiKeyId, "read_charge");
           const limited = rateLimitResponse(rateLimit);
