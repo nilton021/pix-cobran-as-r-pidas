@@ -87,7 +87,7 @@ export async function createPixCharge(input: {
     paymentSource: "GATEWAY",
     merchantChargeId: input.merchantChargeId,
     customer: { ...input.customer, name: sanitizeName(input.customer.name) },
-    transactions: [{ amount: input.amountCents, pix: { expiration: input.expirationSeconds } }],
+    transactions: [{ paymentType: "PIX", amount: input.amountCents, pix: { expiration: input.expirationSeconds } }],
   };
   const res = await picpayFetch("/charge/pix", { method: "POST", body: JSON.stringify(body) });
   const text = await res.text();
