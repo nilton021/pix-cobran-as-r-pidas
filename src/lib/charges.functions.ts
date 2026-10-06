@@ -12,16 +12,12 @@ const createSchema = z.object({
 export const createCharge = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => createSchema.parse(d))
-.handler(async ({ data, context }) => {
-    // Confere propriedade via RLS do usuário
+  .handler(async ({ data, context }) => {
     const { data: account, error } = await context.supabase
       .from("accounts").select("*").eq("id", data.accountId).maybeSingle();
     if (error || !account) throw new Error("Conta não encontrada");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const picpay = provider === "PICPAY" ? await import("./picpay.server") : null;
-    const asaas = provider === "ASAAS" ? await import("./asaas.server") : null;
-
     const { data: integrations, error: integrationErr } = await context.supabase
       .from("payment_integrations")
       .select("id, provider")
@@ -36,8 +32,11 @@ export const createCharge = createServerFn({ method: "POST" })
           : "Nenhuma integração de pagamentos ativa configurada para esta conta.",
       );
     }
+
     const paymentIntegrationId = integrations[0].id;
     const provider = integrations[0].provider;
+    const picpay = provider === "PICPAY" ? await import("./picpay.server") : null;
+    const asaas = provider === "ASAAS" ? await import("./asaas.server") : null;
 
     const { data: charge, error: insErr } = await supabaseAdmin.from("charges").insert({
       account_id: account.id,
@@ -49,38 +48,48 @@ export const createCharge = createServerFn({ method: "POST" })
     if (insErr || !charge) throw new Error("Não foi possível criar a cobrança");
 
     try {
-      const res = provider === "ASAAS"
+      const result = provider === "ASAAS"
         ? await asaas!.createPixCharge(paymentIntegrationId, {
-        merchantChargeId: charge.id,
-        customer: {
-          name: account.name,
-          email: account.email,
-          documentType: account.document_type as "CPF" | "CNPJ",
-          document: account.document,
-        },
-        amountCents: data.amountCents,
-        expirationSeconds: data.expirationSeconds,
-      })
-        : await picpay!.createPixCharge(paymentIntegrationId, {
-          merchantChargeId: charge.id,
-          customer: {
+            externalReference: charge.id,
             name: account.name,
             email: account.email,
-            documentType: account.document_type as "CPF" | "CNPJ",
             document: account.document,
-          },
-          amountCents: data.amountCents,
-          expirationSeconds: data.expirationSeconds,
-        });
-      const pix = provider === "ASAAS" ? res.pix : res.transactions?.[0]?.pix;
-      const remoteId = provider === "ASAAS" ? res.paymentId : res.id;
-      const { data: updated, error: upErr } = await supabaseAdmin.from("charges").update({
-        provider_charge_id: remoteId ?? null,
-        picpay_charge_id: provider === "PICPAY" ? remoteId ?? null : null,
-        qr_code: provider === "ASAAS" ? pix?.payload ?? null : pix?.qrCode ?? null,
-        qr_code_base64: provider === "ASAAS" ? pix?.encodedImage ?? null : pix?.qrCodeBase64 ?? null,
-        expires_at: provider === "ASAAS" && pix?.expirationDate ? pix.expirationDate : new Date(Date.now() + data.expirationSeconds * 1000).toISOString(),
-      }).eq("id", charge.id).select().single();
+            amountCents: data.amountCents,
+            description: data.description,
+            expirationSeconds: data.expirationSeconds,
+          })
+        : await picpay!.createPixCharge(paymentIntegrationId, {
+            merchantChargeId: charge.id,
+            customer: {
+              name: account.name,
+              email: account.email,
+              documentType: account.document_type as "CPF" | "CNPJ",
+              document: account.document,
+            },
+            amountCents: data.amountCents,
+            expirationSeconds: data.expirationSeconds,
+          });
+
+      const pix = provider === "ASAAS" ? result.pix : result.transactions?.[0]?.pix;
+      const remoteId = provider === "ASAAS" ? result.paymentId : result.id;
+      const update = provider === "ASAAS"
+        ? {
+            provider_charge_id: remoteId ?? null,
+            picpay_charge_id: null,
+            qr_code: pix?.payload ?? null,
+            qr_code_base64: pix?.encodedImage ?? null,
+            expires_at: pix?.expirationDate ?? new Date(Date.now() + data.expirationSeconds * 1000).toISOString(),
+          }
+        : {
+            provider_charge_id: remoteId ?? null,
+            picpay_charge_id: remoteId ?? null,
+            qr_code: pix?.qrCode ?? null,
+            qr_code_base64: pix?.qrCodeBase64 ?? null,
+            expires_at: new Date(Date.now() + data.expirationSeconds * 1000).toISOString(),
+          };
+
+      const { data: updated, error: upErr } = await supabaseAdmin
+        .from("charges").update(update).eq("id", charge.id).select().single();
       if (upErr) throw upErr;
       return updated;
     } catch (e) {
@@ -100,25 +109,36 @@ export const syncCharge = createServerFn({ method: "POST" })
       .select("id, payment_integration_id, provider_charge_id")
       .eq("id", data.chargeId)
       .maybeSingle();
-    if (!owned) throw new Error("Cobrança não encontrada");
-    const { data: integration } = await context.supabase.from("payment_integrations").select("provider").eq("id", owned.payment_integration_id).maybeSingle();
+    if (!owned?.payment_integration_id) throw new Error("Cobrança não encontrada");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: integration } = await context.supabase
+      .from("payment_integrations")
+      .select("provider")
+      .eq("id", owned.payment_integration_id)
+      .maybeSingle();
+
     if (integration?.provider === "ASAAS") {
       const { getPayment, statusToLocal } = await import("./asaas.server");
-      const remoteId = (owned as { provider_charge_id?: string | null }).provider_charge_id;
-      if (!remoteId) throw new Error("Cobrança Asaas sem identificador remoto");
-      const remote = await getPayment(owned.payment_integration_id, remoteId);
+      if (!owned.provider_charge_id) throw new Error("Cobrança Asaas sem identificador remoto");
+      const remote = await getPayment(owned.payment_integration_id, owned.provider_charge_id);
       const status = statusToLocal(remote.status);
-      const { data: updated } = await supabaseAdmin.from("charges").update({ status, paid_at: status === "PAID" ? new Date().toISOString() : null }).eq("id", data.chargeId).select().single();
+      const { data: updated, error } = await supabaseAdmin.from("charges").update({
+        status,
+        paid_at: status === "PAID" ? new Date().toISOString() : null,
+        last_error: null,
+      }).eq("id", data.chargeId).select().single();
+      if (error) throw error;
       return updated;
     }
+
     const { getCharge, applyStatus } = await import("./picpay.server");
-    if (!owned.payment_integration_id) throw new Error("Integração de pagamento não vinculada");
     try {
       const remote = await getCharge(owned.payment_integration_id, data.chargeId);
       return await applyStatus(data.chargeId, remote);
     } catch (e) {
       console.error("[sync-charge] falha", data.chargeId, (e as Error).message);
-      throw new Error("Não foi possível consultar o PicPay agora.");
+      throw new Error("Não foi possível consultar o provedor agora.");
     }
   });
 
