@@ -1,0 +1,99 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
+
+const schema = z.object({
+  amountCents: z.number().int().min(1),
+  description: z.string().max(140).optional(),
+  expirationSeconds: z.number().int().min(60).max(86400).default(900),
+});
+
+export const Route = createFileRoute("/api/v1/charges")({
+  server: {
+    handlers: {
+      POST: async ({ request }) => {
+        try {
+          const { authenticateApiKey } = await import("@/lib/api-key-auth.server");
+          const auth = await authenticateApiKey(request);
+          const input = schema.parse(await request.json());
+
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const { data: account } = await supabaseAdmin
+            .from("accounts")
+            .select("id, name, email, document, document_type")
+            .eq("id", auth.accountId)
+            .maybeSingle();
+
+          if (!account) return Response.json({ error: "Conta não encontrada" }, { status: 404 });
+
+          const { data: integrations } = await supabaseAdmin
+            .from("payment_integrations")
+            .select("id")
+            .eq("account_id", account.id)
+            .eq("provider", "PICPAY")
+            .eq("status", "ACTIVE");
+
+          if (!integrations || integrations.length !== 1) {
+            return Response.json(
+              { error: integrations?.length ? "É necessário manter exatamente uma integração PicPay ativa para esta conta." : "Nenhuma integração PicPay ativa configurada para esta conta." },
+              { status: 409 },
+            );
+          }
+
+          const integrationId = integrations[0].id;
+          const { data: charge, error: insertError } = await supabaseAdmin
+            .from("charges")
+            .insert({
+              account_id: account.id,
+              payment_integration_id: integrationId,
+              amount_cents: input.amountCents,
+              description: input.description ?? null,
+              status: "PENDING",
+            })
+            .select()
+            .single();
+
+          if (insertError || !charge) throw new Error("Não foi possível criar a cobrança");
+
+          try {
+            const { createPixCharge, PicPayError } = await import("@/lib/picpay.server");
+            const res = await createPixCharge(integrationId, {
+              merchantChargeId: charge.id,
+              customer: {
+                name: account.name,
+                email: account.email,
+                documentType: account.document_type as "CPF" | "CNPJ",
+                document: account.document,
+              },
+              amountCents: input.amountCents,
+              expirationSeconds: input.expirationSeconds,
+            });
+            const pix = res.transactions?.[0]?.pix;
+            const { data: updated, error } = await supabaseAdmin
+              .from("charges")
+              .update({
+                picpay_charge_id: res.id ?? null,
+                qr_code: pix?.qrCode ?? null,
+                qr_code_base64: pix?.qrCodeBase64 ?? null,
+                expires_at: new Date(Date.now() + input.expirationSeconds * 1000).toISOString(),
+              })
+              .eq("id", charge.id)
+              .select("id, amount_cents, description, status, qr_code, qr_code_base64, expires_at, created_at, updated_at")
+              .single();
+            if (error || !updated) throw new Error("Não foi possível finalizar a cobrança");
+            return Response.json(updated, { status: 201 });
+          } catch (error) {
+            const msg = error instanceof PicPayError ? `${error.message}: ${error.body.slice(0, 300)}` : (error as Error).message;
+            await supabaseAdmin.from("charges").update({ status: "ERROR", last_error: msg }).eq("id", charge.id);
+            console.error("[api/v1/charges] falha", charge.id, msg);
+            return Response.json({ error: "Não foi possível gerar o Pix no PicPay." }, { status: 502 });
+          }
+        } catch (error) {
+          if (error instanceof z.ZodError) return Response.json({ error: "Dados inválidos", details: error.flatten() }, { status: 400 });
+          const message = error instanceof Error ? error.message : "Unauthorized";
+          if (message.startsWith("Unauthorized:")) return Response.json({ error: "Não autorizado" }, { status: 401 });
+          return Response.json({ error: "Não foi possível criar a cobrança" }, { status: 500 });
+        }
+      },
+    },
+  },
+});
