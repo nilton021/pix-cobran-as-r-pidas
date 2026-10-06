@@ -24,6 +24,10 @@ as $$
 declare
   integration_provider text;
   integration_status text;
+  v_environment text;
+  v_client_id text;
+  v_client_secret text;
+  v_webhook_secret text;
 begin
   if coalesce(current_setting('request.jwt.claim.role', true), '') <> 'service_role' then
     raise exception 'Acesso não autorizado';
@@ -42,9 +46,7 @@ begin
     raise exception 'Integração PicPay não está ativa';
   end if;
 
-  return query
   select
-    p_integration_id,
     pi.environment,
     max(ds.decrypted_secret) filter (
       where ds.name = 'pix_' || p_integration_id::text || '_client_id'
@@ -55,6 +57,7 @@ begin
     max(ds.decrypted_secret) filter (
       where ds.name = 'pix_' || p_integration_id::text || '_webhook_secret'
     )
+    into v_environment, v_client_id, v_client_secret, v_webhook_secret
   from public.payment_integrations pi
   left join vault.decrypted_secrets ds
     on ds.name in (
@@ -65,11 +68,12 @@ begin
   where pi.id = p_integration_id
   group by pi.environment;
 
-  if client_id is null or client_secret is null or webhook_secret is null then
+  if v_client_id is null or v_client_secret is null or v_webhook_secret is null then
     raise exception 'Credenciais PicPay não configuradas para a integração';
   end if;
 
-  return;
+  return query
+  select p_integration_id, v_environment, v_client_id, v_client_secret, v_webhook_secret;
 end;
 $$;
 
