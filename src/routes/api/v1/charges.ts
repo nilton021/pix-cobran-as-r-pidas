@@ -14,6 +14,10 @@ export const Route = createFileRoute("/api/v1/charges")({
         try {
           const { authenticateApiKey } = await import("@/lib/api-key-auth.server");
           const auth = await authenticateApiKey(request);
+          const { consumeApiRateLimit, rateLimitResponse } = await import("@/lib/api-rate-limit.server");
+          const rateLimit = await consumeApiRateLimit(auth.apiKeyId, "create_charge");
+          const limited = rateLimitResponse(rateLimit);
+          if (limited) return limited;
           const input = schema.parse(await request.json());
 
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -90,6 +94,7 @@ export const Route = createFileRoute("/api/v1/charges")({
         } catch (error) {
           if (error instanceof z.ZodError) return Response.json({ error: "Dados inválidos", details: error.flatten() }, { status: 400 });
           const message = error instanceof Error ? error.message : "Unauthorized";
+          if (message === "Rate limit indisponível") return Response.json({ error: "Serviço temporariamente indisponível" }, { status: 503 });
           if (message.startsWith("Unauthorized:")) return Response.json({ error: "Não autorizado" }, { status: 401 });
           return Response.json({ error: "Não foi possível criar a cobrança" }, { status: 500 });
         }
