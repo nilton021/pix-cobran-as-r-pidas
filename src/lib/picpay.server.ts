@@ -2,24 +2,40 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 type TokenCache = { token: string; expiresAt: number };
-let cache: TokenCache | null = null;
-let pending: Promise<string> | null = null;
+type PicPayCredentials = { integrationId: string; environment: string; clientId: string; clientSecret: string };
+const tokenCache = new Map<string, TokenCache>();
+const pendingTokens = new Map<string, Promise<string>>();
+
+async function getCredentials(integrationId: string): Promise<PicPayCredentials> {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(integrationId)) {
+    throw new Error("payment_integration_id inválido");
+  }
+  const { data, error } = await supabaseAdmin.rpc("get_picpay_integration_credentials", {
+    p_integration_id: integrationId,
+  });
+  if (error || !data?.[0]?.client_id || !data[0].client_secret) {
+    throw new Error("Credenciais PicPay não configuradas");
+  }
+  return {
+    integrationId,
+    environment: data[0].environment,
+    clientId: data[0].client_id,
+    clientSecret: data[0].client_secret,
+  };
+}
 
 function cfg() {
   const base = process.env["PICPAY_API_BASE_URL"];
-  const clientId = process.env["PICPAY_CLIENT_ID"];
-  const clientSecret = process.env["PICPAY_CLIENT_SECRET"];
-  if (!base || !clientId || !clientSecret) {
-    throw new Error("Credenciais PicPay não configuradas");
-  }
+  if (!base) throw new Error("PICPAY_API_BASE_URL não configurado");
   const apiPath = process.env["PICPAY_API_PATH"]?.trim();
   if (!apiPath) throw new Error("PICPAY_API_PATH não configurado");
   const normalizedApiPath = `/${apiPath.replace(/^\/+|\/+$/g, "")}`;
-  return { base: base.replace(/\/+$/, ""), apiPath: normalizedApiPath, clientId, clientSecret };
+  return { base: base.replace(/\/+$/, ""), apiPath: normalizedApiPath };
 }
 
-async function fetchToken(): Promise<string> {
-  const { base, clientId, clientSecret } = cfg();
+async function fetchToken(integrationId: string): Promise<string> {
+  const { base } = cfg();
+  const { clientId, clientSecret } = await getCredentials(integrationId);
   const res = await fetch(`${base}/oauth2/token`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -31,26 +47,30 @@ async function fetchToken(): Promise<string> {
   }
   const json = (await res.json()) as { access_token: string; expires_in?: number };
   const ttl = (json.expires_in ?? 300) * 1000;
-  cache = { token: json.access_token, expiresAt: Date.now() + ttl - 30_000 };
+  tokenCache.set(integrationId, { token: json.access_token, expiresAt: Date.now() + ttl - 30_000 });
   return json.access_token;
 }
 
-export async function getToken(): Promise<string> {
-  if (cache && cache.expiresAt > Date.now()) return cache.token;
-  if (!pending) pending = fetchToken().finally(() => { pending = null; });
-  return pending;
+export async function getToken(integrationId: string): Promise<string> {
+  const cached = tokenCache.get(integrationId);
+  if (cached && cached.expiresAt > Date.now()) return cached.token;
+  const pending = pendingTokens.get(integrationId);
+  if (pending) return pending;
+  const next = fetchToken(integrationId).finally(() => pendingTokens.delete(integrationId));
+  pendingTokens.set(integrationId, next);
+  return next;
 }
 
-async function picpayFetch(path: string, init: RequestInit = {}, retried = false): Promise<Response> {
+async function picpayFetch(integrationId: string, path: string, init: RequestInit = {}, retried = false): Promise<Response> {
   const { base, apiPath } = cfg();
-  const token = await getToken();
+  const token = await getToken(integrationId);
   const res = await fetch(`${base}${apiPath}${path}`, {
     ...init,
     headers: { "Content-Type": "application/json", ...(init.headers ?? {}), Authorization: `Bearer ${token}` },
   });
   if (res.status === 401 && !retried) {
-    cache = null;
-    return picpayFetch(path, init, true);
+    tokenCache.delete(integrationId);
+    return picpayFetch(integrationId, path, init, true);
   }
   return res;
 }
@@ -82,7 +102,7 @@ export type PicPayCharge = {
   [k: string]: unknown;
 };
 
-export async function createPixCharge(input: {
+export async function createPixCharge(integrationId: string, input: {
   merchantChargeId: string;
   customer: { name: string; email: string; documentType: "CPF" | "CNPJ"; document: string };
   amountCents: number;
@@ -94,7 +114,7 @@ export async function createPixCharge(input: {
     customer: { ...input.customer, name: sanitizeName(input.customer.name) },
     transactions: [{ amount: input.amountCents, pix: { expiration: input.expirationSeconds } }],
   };
-  const res = await picpayFetch("/charge/pix", { method: "POST", body: JSON.stringify(body) });
+  const res = await picpayFetch(integrationId, "/charge/pix", { method: "POST", body: JSON.stringify(body) });
   const text = await res.text();
   if (!res.ok) {
     console.error("[picpay] createPixCharge erro", res.status, text.slice(0, 500));
@@ -103,8 +123,8 @@ export async function createPixCharge(input: {
   return JSON.parse(text) as PicPayCharge;
 }
 
-export async function getCharge(merchantChargeId: string): Promise<PicPayCharge> {
-  const res = await picpayFetch(`/charge/${encodeURIComponent(merchantChargeId)}`, { method: "GET" });
+export async function getCharge(integrationId: string, merchantChargeId: string): Promise<PicPayCharge> {
+  const res = await picpayFetch(integrationId, `/charge/${encodeURIComponent(merchantChargeId)}`, { method: "GET" });
   const text = await res.text();
   if (!res.ok) {
     console.error("[picpay] getCharge erro", res.status, text.slice(0, 500));
