@@ -153,7 +153,45 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      consume_api_rate_limit: {
+        Args: {
+          p_api_key_id: string;
+          p_route: string;
+          p_limit: number;
+          p_window_seconds?: number;
+        };
+        Returns: {
+          allowed: boolean;
+          remaining: number;
+          retry_after_seconds: number;
+        }[];
+      };
+      get_picpay_integration_credentials: {
+        Args: { p_integration_id: string };
+        Returns: {
+          integration_id: string;
+          environment: string;
+          client_id: string;
+          client_secret: string;
+          webhook_secret: string;
+        }[];
+      };
+      get_picpay_webhook_secret: {
+        Args: { p_integration_id: string };
+        Returns: string;
+      };
+      set_customer_webhook_secret: {
+        Args: { p_endpoint_id: string; p_secret: string };
+        Returns: undefined;
+      };
+      get_customer_webhook_secret: {
+        Args: { p_endpoint_id: string };
+        Returns: string;
+      };
+      purge_old_webhook_events: {
+        Args: { p_retention_days?: number };
+        Returns: number;
+      };
     }
     Enums: {
       [_ in never]: never
