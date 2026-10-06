@@ -71,6 +71,7 @@ export type Database = {
           last_error: string | null
           paid_at: string | null
           payer: Json | null
+          payment_integration_id: string | null
           picpay_charge_id: string | null
           qr_code: string | null
           qr_code_base64: string | null
@@ -88,6 +89,7 @@ export type Database = {
           last_error?: string | null
           paid_at?: string | null
           payer?: Json | null
+          payment_integration_id?: string | null
           picpay_charge_id?: string | null
           qr_code?: string | null
           qr_code_base64?: string | null
@@ -105,6 +107,7 @@ export type Database = {
           last_error?: string | null
           paid_at?: string | null
           payer?: Json | null
+          payment_integration_id?: string | null
           picpay_charge_id?: string | null
           qr_code?: string | null
           qr_code_base64?: string | null
@@ -121,12 +124,179 @@ export type Database = {
           },
         ]
       }
+      api_keys: {
+        Row: {
+          id: string
+          account_id: string
+          name: string
+          key_prefix: string
+          key_hash: string
+          expires_at: string | null
+          revoked_at: string | null
+          last_used_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          account_id: string
+          name: string
+          key_prefix: string
+          key_hash: string
+          expires_at?: string | null
+          revoked_at?: string | null
+          last_used_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          name?: string
+          expires_at?: string | null
+          revoked_at?: string | null
+          last_used_at?: string | null
+        }
+        Relationships: []
+      }
+      payment_integrations: {
+        Row: {
+          id: string
+          account_id: string
+          provider: string
+          environment: string
+          display_name: string
+          status: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          account_id: string
+          provider: string
+          environment: string
+          display_name: string
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          display_name?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      customer_webhook_endpoints: {
+        Row: {
+          id: string
+          account_id: string
+          url: string
+          secret_name: string
+          events: Json
+          active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          account_id: string
+          url: string
+          secret_name: string
+          events?: Json
+          active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          url?: string
+          events?: Json
+          active?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      api_idempotency_keys: {
+        Row: {
+          api_key_id: string
+          idempotency_key: string
+          request_hash: string
+          charge_id: string | null
+          response_status: number | null
+          created_at: string
+          completed_at: string | null
+        }
+        Insert: {
+          api_key_id: string
+          idempotency_key: string
+          request_hash: string
+          charge_id?: string | null
+          response_status?: number | null
+          created_at?: string
+          completed_at?: string | null
+        }
+        Update: {
+          charge_id?: string | null
+          response_status?: number | null
+          completed_at?: string | null
+        }
+        Relationships: []
+      }
+      api_rate_limit_buckets: {
+        Row: {
+          api_key_id: string
+          route: string
+          window_start: string
+          request_count: number
+        }
+        Insert: {
+          api_key_id: string
+          route: string
+          window_start: string
+          request_count?: number
+        }
+        Update: {
+          request_count?: number
+        }
+        Relationships: []
+      }
+      api_audit_events: {
+        Row: {
+          id: string
+          account_id: string | null
+          api_key_id: string | null
+          request_id: string
+          route: string
+          method: string
+          status_code: number
+          duration_ms: number
+          event_type: string
+          metadata: Json
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          account_id?: string | null
+          api_key_id?: string | null
+          request_id: string
+          route: string
+          method: string
+          status_code: number
+          duration_ms: number
+          event_type?: string
+          metadata?: Json
+          created_at?: string
+        }
+        Update: {
+          status_code?: number
+          duration_ms?: number
+          event_type?: string
+          metadata?: Json
+        }
+        Relationships: []
+      }
       webhook_events: {
         Row: {
           event_id: string | null
           id: string
           merchant_charge_id: string | null
-          payload: Json | null
+          payload_hash: string | null
           received_at: string
           status: string | null
         }
@@ -134,7 +304,7 @@ export type Database = {
           event_id?: string | null
           id?: string
           merchant_charge_id?: string | null
-          payload?: Json | null
+          payload_hash?: string | null
           received_at?: string
           status?: string | null
         }
@@ -142,7 +312,7 @@ export type Database = {
           event_id?: string | null
           id?: string
           merchant_charge_id?: string | null
-          payload?: Json | null
+          payload_hash?: string | null
           received_at?: string
           status?: string | null
         }
@@ -153,7 +323,45 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      consume_api_rate_limit: {
+        Args: {
+          p_api_key_id: string;
+          p_route: string;
+          p_limit: number;
+          p_window_seconds?: number;
+        };
+        Returns: {
+          allowed: boolean;
+          remaining: number;
+          retry_after_seconds: number;
+        }[];
+      };
+      get_picpay_integration_credentials: {
+        Args: { p_integration_id: string };
+        Returns: {
+          integration_id: string;
+          environment: string;
+          client_id: string;
+          client_secret: string;
+          webhook_secret: string;
+        }[];
+      };
+      get_picpay_webhook_secret: {
+        Args: { p_integration_id: string };
+        Returns: string;
+      };
+      set_customer_webhook_secret: {
+        Args: { p_endpoint_id: string; p_secret: string };
+        Returns: undefined;
+      };
+      get_customer_webhook_secret: {
+        Args: { p_endpoint_id: string };
+        Returns: string;
+      };
+      purge_old_webhook_events: {
+        Args: { p_retention_days?: number };
+        Returns: number;
+      };
     }
     Enums: {
       [_ in never]: never
