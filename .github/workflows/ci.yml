@@ -4,8 +4,7 @@ on:
   push:
     branches:
       - main
-      - "ci/**"
-      - "fix/**"
+      - "**"
     paths-ignore:
       - "**/*.md"
   pull_request:
@@ -15,12 +14,17 @@ on:
       - "**/*.md"
   workflow_dispatch:
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
 jobs:
   validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
