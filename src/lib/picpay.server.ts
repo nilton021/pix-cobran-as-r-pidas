@@ -190,6 +190,10 @@ export async function applyStatus(chargeId: string, remote: PicPayCharge, opts: 
   }
 
   if (current.status !== next) console.log("[picpay] status atualizado", { chargeId, from: current.status, to: next });
+  if (current.status !== next) {
+    const { deliverCustomerWebhook } = await import("@/lib/customer-webhooks.server");
+    await deliverCustomerWebhook(data);
+  }
   return data;
 }
 
