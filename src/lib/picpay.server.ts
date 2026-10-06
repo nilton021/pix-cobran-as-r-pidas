@@ -30,7 +30,7 @@ function cfg() {
   const apiPath = process.env["PICPAY_API_PATH"]?.trim();
   if (!apiPath) throw new Error("PICPAY_API_PATH não configurado");
   const normalizedApiPath = `/${apiPath.replace(/^\/+|\/+$/g, "")}`;
-  return { base: base.replace(/\/+$/, ""), apiPath: normalizedApiPath, clientId, clientSecret };
+  return { base: base.replace(/\/+$/, ""), apiPath: normalizedApiPath };
 }
 
 async function fetchToken(integrationId: string): Promise<string> {
