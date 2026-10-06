@@ -336,6 +336,18 @@ export type Database = {
           retry_after_seconds: number;
         }[];
       };
+      save_picpay_integration: {
+        Args: {
+          p_account_id: string;
+          p_integration_id?: string | null;
+          p_display_name?: string | null;
+          p_environment?: string | null;
+          p_client_id?: string | null;
+          p_client_secret?: string | null;
+          p_webhook_secret?: string | null;
+        };
+        Returns: string;
+      };
       get_picpay_integration_credentials: {
         Args: { p_integration_id: string };
         Returns: {

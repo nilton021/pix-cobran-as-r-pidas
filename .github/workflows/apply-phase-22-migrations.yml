@@ -62,6 +62,20 @@ jobs:
           \echo 'Aplicando/validando 0014'
           \i drizzle/migrations/0014_charge_integration_backfill.sql
 
+          select exists (
+            select 1
+              from pg_proc p
+              join pg_namespace n on n.oid = p.pronamespace
+             where n.nspname = 'public'
+               and p.proname = 'save_picpay_integration'
+          ) as migration_0016_done \gset
+          \if :migration_0016_done
+            \echo '0016 já aplicada; validando função'
+          \else
+            \echo 'Aplicando 0016'
+            \i drizzle/migrations/0016_picpay_integration_vault_management.sql
+          \endif
+
           commit;
 
           select

@@ -101,8 +101,6 @@ export const getWebhookInfo = createServerFn({ method: "GET" })
   .handler(async () => ({
     configured: {
       PICPAY_API_BASE_URL: !!process.env["PICPAY_API_BASE_URL"],
-      PICPAY_CLIENT_ID: false,
-      PICPAY_CLIENT_SECRET: false,
-      PICPAY_WEBHOOK_TOKEN: !!process.env["PICPAY_WEBHOOK_TOKEN"],
+      PICPAY_API_PATH: !!process.env["PICPAY_API_PATH"],
     },
   }));
