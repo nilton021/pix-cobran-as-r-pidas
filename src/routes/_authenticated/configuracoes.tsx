@@ -5,7 +5,8 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Copy, CheckCircle2, XCircle, ShieldCheck, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getPicPaySettings, savePicPayIntegration } from "@/lib/picpay-integration.functions";
+import { getPaymentSettings, savePaymentIntegration } from "@/lib/payment-integration.functions";
+import { PAYMENT_PROVIDERS } from "@/lib/payment-providers";
 
 export const Route = createFileRoute("/_authenticated/configuracoes")({
   head: () => ({
@@ -32,10 +33,11 @@ type Integration = {
 
 function Config() {
   const queryClient = useQueryClient();
-  const load = useServerFn(getPicPaySettings);
-  const save = useServerFn(savePicPayIntegration);
+  const load = useServerFn(getPaymentSettings);
+  const save = useServerFn(savePaymentIntegration);
   const [accountId, setAccountId] = useState("");
   const [integrationId, setIntegrationId] = useState("");
+  const [provider, setProvider] = useState<"PICPAY" | "ASAAS">("PICPAY");
   const [displayName, setDisplayName] = useState("PicPay");
   const [environment, setEnvironment] = useState<"SANDBOX" | "PRODUCTION">("PRODUCTION");
   const [clientId, setClientId] = useState("");
@@ -47,7 +49,7 @@ function Config() {
   useEffect(() => setOrigin(window.location.origin), []);
 
   const settings = useQuery({
-    queryKey: ["picpay-settings", accountId || "current"],
+    queryKey: ["payment-settings", accountId || "current"],
     queryFn: () => load({ data: { accountId: accountId || undefined } }),
   });
 
@@ -61,6 +63,7 @@ function Config() {
   useEffect(() => {
     if (selected) {
       setDisplayName(selected.display_name);
+      if (selected.provider === "PICPAY" || selected.provider === "ASAAS") setProvider(selected.provider);
       setEnvironment(selected.environment);
       setClientId("");
       setClientSecret("");
@@ -77,11 +80,12 @@ function Config() {
       data: {
         accountId,
         integrationId: integrationId || undefined,
+        provider,
         displayName,
         environment,
-        clientId,
-        clientSecret,
-        webhookSecret,
+        credential1: clientId,
+        credential2: clientSecret,
+        credential3: webhookSecret,
       },
     }),
     onSuccess: (result) => {
@@ -89,14 +93,14 @@ function Config() {
       setClientId("");
       setClientSecret("");
       setWebhookSecret("");
-      toast.success("Integração PicPay salva com segurança no Vault.");
-      queryClient.invalidateQueries({ queryKey: ["picpay-settings", accountId] });
-      queryClient.invalidateQueries({ queryKey: ["picpay-settings", "current"] });
+      toast.success("Integração salva com segurança no Vault.");
+      queryClient.invalidateQueries({ queryKey: ["payment-settings", accountId] });
+      queryClient.invalidateQueries({ queryKey: ["payment-settings", "current"] });
     },
     onError: (error) => toast.error(error.message),
   });
 
-  const webhookUrl = origin ? `${origin}/api/public/picpay-webhook` : "/api/public/picpay-webhook";
+  const webhookUrl = origin ? ${origin}/api/public/${provider === "ASAAS" ? "asaas-webhook" : "picpay-webhook"} : "/api/public/picpay-webhook";
   const isEditing = Boolean(selected);
 
   return (
@@ -107,6 +111,26 @@ function Config() {
           Integração PicPay Business com credenciais armazenadas no Supabase Vault.
         </p>
       </div>
+
+      <section className="space-y-3 rounded-xl border bg-card p-5">
+        <h2 className="font-bold">Escolha o provedor</h2>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {PAYMENT_PROVIDERS.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              disabled={item.status !== "available"}
+              onClick={() => {
+                if (item.id === "PICPAY" || item.id === "ASAAS") setProvider(item.id);
+              }}
+              className={"rounded-lg border p-3 text-left " + (provider === item.id ? "border-primary bg-muted" : "")}
+            >
+              <div className="font-semibold">{item.name}</div>
+              <div className="text-xs text-muted-foreground">{item.status === "available" ? "Disponível" : "Em breve"}</div>
+            </button>
+          ))}
+        </div>
+      </section>
 
       {settings.data && (
         <section className="space-y-3 rounded-xl border bg-card p-5">
@@ -124,7 +148,7 @@ function Config() {
       <section className="space-y-4 rounded-xl border bg-card p-5">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 className="font-bold">Integração PicPay</h2>
+            <h2 className="font-bold">Integração de pagamento</h2>
             <p className="text-xs text-muted-foreground">
               {isEditing
                 ? "Editando a integração. Os segredos atuais nunca são exibidos."
@@ -180,14 +204,14 @@ function Config() {
           value={clientId}
           onChange={setClientId}
           visible={showSecrets}
-          placeholder={isEditing ? "Deixe vazio para manter o atual" : "client_id do PicPay"}
+          placeholder={isEditing ? "Deixe vazio para manter o atual" : provider === "ASAAS" ? "API Key do Asaas" : "client_id do PicPay"}
         />
         <SecretField
           label="Client Secret"
           value={clientSecret}
           onChange={setClientSecret}
           visible={showSecrets}
-          placeholder={isEditing ? "Deixe vazio para manter o atual" : "client_secret do PicPay"}
+          placeholder={isEditing ? "Deixe vazio para manter o atual" : provider === "ASAAS" ? "Token do webhook Asaas" : "client_secret do PicPay"}
         />
         <SecretField
           label="Webhook Token"
@@ -232,7 +256,7 @@ function Config() {
           </Button>
         </div>
         <p className="text-xs text-muted-foreground">
-          Cadastre esta URL no painel do PicPay. O token usado pelo webhook é o mesmo salvo acima e fica protegido no Vault.
+          Cadastre esta URL no painel do provedor selecionado. O segredo fica protegido no Vault.
         </p>
       </section>
     </div>
