@@ -12,11 +12,14 @@ export const Route = createFileRoute("/api/v1/charges")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const audit = createApiAuditContext(request);
         let reservationOwner: { apiKeyId: string; idempotencyKey: string } | null = null;
 
         try {
           const { authenticateApiKey } = await import("@/lib/api-key-auth.server");
           const auth = await authenticateApiKey(request);
+          audit.accountId = auth.accountId;
+          audit.apiKeyId = auth.apiKeyId;
           const input = schema.parse(await request.json());
           const idempotencyKey = request.headers.get("Idempotency-Key")?.trim();
           if (!idempotencyKey || idempotencyKey.length > 255) {
@@ -64,12 +67,12 @@ export const Route = createFileRoute("/api/v1/charges")({
           }
 
           const { consumeApiRateLimit, rateLimitResponse } = await import("@/lib/api-rate-limit.server");
-            const rateLimit = await consumeApiRateLimit(auth.apiKeyId, "create_charge");
-            const limited = rateLimitResponse(rateLimit);
-            if (limited) {
-              await releaseIdempotencyKey(auth.apiKeyId, idempotencyKey);
-              return limited;
-            }
+          const rateLimit = await consumeApiRateLimit(auth.apiKeyId, "create_charge");
+          const limited = rateLimitResponse(rateLimit);
+          if (limited) {
+            await releaseIdempotencyKey(auth.apiKeyId, idempotencyKey);
+            return limited;
+          }
 
           const { data: account } = await supabaseAdmin
             .from("accounts")
