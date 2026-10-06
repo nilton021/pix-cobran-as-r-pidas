@@ -27,19 +27,35 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
   };
 }
 
+function readRuntimeMeta(name: string): string | undefined {
+  if (typeof document === 'undefined') return undefined;
+  return document
+    .querySelector(`meta[name="${name}"]`)
+    ?.getAttribute('content')
+    ?.trim() || undefined;
+}
 
 function createSupabaseClient() {
-  // Use import.meta.env for client-side (Vite build-time replacement)
-  // Fall back to process.env for SSR (server-side rendering)
-  const SUPABASE_URL = import.meta.env['VITE_SUPABASE_URL'] || process.env['SUPABASE_URL'];
-  const SUPABASE_PUBLISHABLE_KEY = import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY'] || process.env['SUPABASE_PUBLISHABLE_KEY'];
+  // Client-side priority:
+  // 1) Vite build-time variables
+  // 2) SSR process variables
+  // 3) public runtime metadata emitted by the server
+  const SUPABASE_URL =
+    import.meta.env['VITE_SUPABASE_URL'] ||
+    process.env['SUPABASE_URL'] ||
+    readRuntimeMeta('supabase-url');
+
+  const SUPABASE_PUBLISHABLE_KEY =
+    import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY'] ||
+    process.env['SUPABASE_PUBLISHABLE_KEY'] ||
+    readRuntimeMeta('supabase-publishable-key');
 
   if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
     const missing = [
       ...(!SUPABASE_URL ? ['SUPABASE_URL'] : []),
       ...(!SUPABASE_PUBLISHABLE_KEY ? ['SUPABASE_PUBLISHABLE_KEY'] : []),
     ];
-    const message = `Missing Supabase environment variable(s): ${missing.join(', ')}. Connect Supabase in Lovable Cloud.`;
+    const message = `Supabase frontend configuration is unavailable: ${missing.join(', ')}. Please refresh or contact support.`;
     console.error(`[Supabase] ${message}`);
     throw new Error(message);
   }
@@ -66,4 +82,3 @@ export const supabase = new Proxy({} as ReturnType<typeof createSupabaseClient>,
     return Reflect.get(_supabase, prop, receiver);
   },
 });
-
