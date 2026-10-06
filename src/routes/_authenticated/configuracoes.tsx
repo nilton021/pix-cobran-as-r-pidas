@@ -1,63 +1,279 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Copy, CheckCircle2, XCircle } from "lucide-react";
+import { Copy, CheckCircle2, XCircle, ShieldCheck, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getWebhookInfo } from "@/lib/charges.functions";
+import { getPicPaySettings, savePicPayIntegration } from "@/lib/picpay-integration.functions";
 
 export const Route = createFileRoute("/_authenticated/configuracoes")({
   head: () => ({
     meta: [
       { title: "Configurações — Pix Charges" },
-      { name: "description", content: "URL de notificação e passo a passo da integração PicPay Business." },
+      { name: "description", content: "Configure sua integração PicPay Business com credenciais protegidas no Vault." },
       { property: "og:title", content: "Configurações — Pix Charges" },
-      { property: "og:description", content: "Configure a integração com o PicPay Business." },
+      { property: "og:description", content: "Configure sua integração com o PicPay Business." },
     ],
   }),
   component: Config,
 });
 
+type Integration = {
+  id: string;
+  account_id: string;
+  provider: string;
+  environment: "SANDBOX" | "PRODUCTION";
+  display_name: string;
+  status: "ACTIVE" | "INACTIVE" | "ERROR";
+  created_at: string;
+  updated_at: string;
+};
+
 function Config() {
-  const info = useServerFn(getWebhookInfo);
-  const { data } = useQuery({ queryKey: ["webhook-info"], queryFn: () => info() });
+  const queryClient = useQueryClient();
+  const load = useServerFn(getPicPaySettings);
+  const save = useServerFn(savePicPayIntegration);
+  const [accountId, setAccountId] = useState("");
+  const [integrationId, setIntegrationId] = useState("");
+  const [displayName, setDisplayName] = useState("PicPay");
+  const [environment, setEnvironment] = useState<"SANDBOX" | "PRODUCTION">("PRODUCTION");
+  const [clientId, setClientId] = useState("");
+  const [clientSecret, setClientSecret] = useState("");
+  const [webhookSecret, setWebhookSecret] = useState("");
+  const [showSecrets, setShowSecrets] = useState(false);
   const [origin, setOrigin] = useState("");
+
   useEffect(() => setOrigin(window.location.origin), []);
-  const url = `${origin}/api/public/picpay-webhook`;
+
+  const settings = useQuery({
+    queryKey: ["picpay-settings", accountId || "current"],
+    queryFn: () => load({ data: { accountId: accountId || undefined } }),
+  });
+
+  const integrations = (settings.data?.integrations ?? []) as Integration[];
+  const selected = integrations.find((item) => item.id === integrationId) ?? null;
+
+  useEffect(() => {
+    if (!accountId && settings.data?.account.id) setAccountId(settings.data.account.id);
+  }, [accountId, settings.data?.account.id]);
+
+  useEffect(() => {
+    if (selected) {
+      setDisplayName(selected.display_name);
+      setEnvironment(selected.environment);
+      setClientId("");
+      setClientSecret("");
+      setWebhookSecret("");
+    }
+  }, [selected]);
+
+  useEffect(() => {
+    if (integrationId && !selected) setIntegrationId("");
+  }, [integrationId, selected]);
+
+  const mutation = useMutation({
+    mutationFn: () => save({
+      data: {
+        accountId,
+        integrationId: integrationId || undefined,
+        displayName,
+        environment,
+        clientId,
+        clientSecret,
+        webhookSecret,
+      },
+    }),
+    onSuccess: (result) => {
+      setIntegrationId(result.integrationId);
+      setClientId("");
+      setClientSecret("");
+      setWebhookSecret("");
+      toast.success("Integração PicPay salva com segurança no Vault.");
+      queryClient.invalidateQueries({ queryKey: ["picpay-settings", accountId] });
+      queryClient.invalidateQueries({ queryKey: ["picpay-settings", "current"] });
+    },
+    onError: (error) => toast.error(error.message),
+  });
+
+  const webhookUrl = origin ? `${origin}/api/public/picpay-webhook` : "/api/public/picpay-webhook";
+  const isEditing = Boolean(selected);
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      <h1 className="text-2xl font-extrabold">Configurações</h1>
-      <section className="space-y-3 rounded-xl border bg-card p-5">
-        <h2 className="font-bold">URL de notificação (webhook)</h2>
-        <div className="flex gap-2">
-          <code className="flex-1 break-all rounded-lg bg-muted p-3 text-xs">{url}</code>
-          <Button size="icon" variant="outline" aria-label="Copiar" onClick={() => { navigator.clipboard.writeText(url); toast.success("URL copiada"); }}><Copy className="h-4 w-4" /></Button>
+    <div className="mx-auto max-w-3xl space-y-6">
+      <div>
+        <h1 className="text-2xl font-extrabold">Configurações</h1>
+        <p className="text-sm text-muted-foreground">
+          Integração PicPay Business com credenciais armazenadas no Supabase Vault.
+        </p>
+      </div>
+
+      {settings.data && (
+        <section className="space-y-3 rounded-xl border bg-card p-5">
+          <h2 className="font-bold">Configuração da API</h2>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <StatusRow label="PICPAY_API_BASE_URL" ok={settings.data.api.baseUrlConfigured} />
+            <StatusRow label="PICPAY_API_PATH" ok={settings.data.api.apiPathConfigured} />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            A URL base e o path da API são configuração do servidor. Eles não são credenciais do cliente e não são gravados no navegador.
+          </p>
+        </section>
+      )}
+
+      <section className="space-y-4 rounded-xl border bg-card p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h2 className="font-bold">Integração PicPay</h2>
+            <p className="text-xs text-muted-foreground">
+              {isEditing
+                ? "Editando a integração. Os segredos atuais nunca são exibidos."
+                : "Cadastre uma integração. Os três segredos serão gravados diretamente no Vault."}
+            </p>
+          </div>
+          <ShieldCheck className="h-5 w-5" aria-hidden="true" />
         </div>
-        <p className="text-xs text-muted-foreground">Use o endereço do app publicado (HTTPS). O endereço da pré-visualização pode mudar.</p>
-        <ol className="list-decimal space-y-1 pl-5 text-sm">
-          <li>Acesse o <strong>Painel Lojista</strong> &gt; <strong>Ajustes</strong> &gt; <strong>Meu checkout</strong>.</li>
-          <li>Ative <strong>"URL de notificação"</strong> e cole a URL acima (HTTPS, sem parâmetros de consulta).</li>
-          <li>Guarde o token exibido no segredo <code>PICPAY_WEBHOOK_TOKEN</code>.</li>
-        </ol>
+
+        {integrations.length > 0 && (
+          <label className="block space-y-1 text-sm">
+            <span className="font-medium">Integração existente</span>
+            <select
+              className="w-full rounded-lg border bg-background px-3 py-2"
+              value={integrationId}
+              onChange={(e) => setIntegrationId(e.target.value)}
+            >
+              <option value="">Nova integração</option>
+              {integrations.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.display_name} — {item.environment} — {item.status}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="block space-y-1 text-sm">
+            <span className="font-medium">Nome da integração</span>
+            <input
+              className="w-full rounded-lg border bg-background px-3 py-2"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              maxLength={80}
+            />
+          </label>
+          <label className="block space-y-1 text-sm">
+            <span className="font-medium">Ambiente</span>
+            <select
+              className="w-full rounded-lg border bg-background px-3 py-2"
+              value={environment}
+              onChange={(e) => setEnvironment(e.target.value as "SANDBOX" | "PRODUCTION")}
+            >
+              <option value="PRODUCTION">Produção</option>
+              <option value="SANDBOX">Sandbox</option>
+            </select>
+          </label>
+        </div>
+
+        <SecretField
+          label="Client ID"
+          value={clientId}
+          onChange={setClientId}
+          visible={showSecrets}
+          placeholder={isEditing ? "Deixe vazio para manter o atual" : "client_id do PicPay"}
+        />
+        <SecretField
+          label="Client Secret"
+          value={clientSecret}
+          onChange={setClientSecret}
+          visible={showSecrets}
+          placeholder={isEditing ? "Deixe vazio para manter o atual" : "client_secret do PicPay"}
+        />
+        <SecretField
+          label="Webhook Token"
+          value={webhookSecret}
+          onChange={setWebhookSecret}
+          visible={showSecrets}
+          placeholder={isEditing ? "Deixe vazio para manter o atual" : "Token da URL de notificação do PicPay"}
+        />
+
+        <div className="flex flex-wrap items-center gap-3">
+          <Button type="button" variant="outline" onClick={() => setShowSecrets((value) => !value)}>
+            {showSecrets ? <EyeOff className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />}
+            {showSecrets ? "Ocultar segredos" : "Mostrar campos"}
+          </Button>
+          <Button
+            type="button"
+            disabled={!accountId || !displayName.trim() || mutation.isPending}
+            onClick={() => mutation.mutate()}
+          >
+            {mutation.isPending ? "Salvando..." : isEditing ? "Salvar alterações" : "Cadastrar integração"}
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Os valores secretos são enviados apenas ao servidor e nunca retornam para o navegador depois de salvos.
+        </p>
       </section>
+
       <section className="space-y-3 rounded-xl border bg-card p-5">
-        <h2 className="font-bold">Credenciais da API</h2>
-        <ol className="list-decimal space-y-1 pl-5 text-sm">
-          <li>Gere as credenciais da integração PicPay compatível com a <strong>API Pix</strong> no seu Painel Lojista. O nome da integração pode variar conforme o cadastro/conta; <strong>não use “Link de Pagamento - API” nem “TEF com PIX” sem confirmar que são as credenciais da API Pix</strong>.</li>
-          <li>Copie o <code>client_id</code> e o <code>client_secret</code>.</li>
-          <li>Salve-os nos segredos <code>PICPAY_CLIENT_ID</code> e <code>PICPAY_CLIENT_SECRET</code>.</li>
-        </ol>
-        <ul className="space-y-1.5 pt-2 text-sm">
-          {data && Object.entries(data.configured).map(([k, ok]) => (
-            <li key={k} className="flex items-center gap-2">
-              {ok ? <CheckCircle2 className="h-4 w-4 text-success" /> : <XCircle className="h-4 w-4 text-destructive" />}
-              <code>{k}</code> <span className="text-muted-foreground">{ok ? "configurado" : "pendente"}</span>
-            </li>
-          ))}
-        </ul>
+        <h2 className="font-bold">Webhook PicPay</h2>
+        <div className="flex gap-2">
+          <code className="flex-1 break-all rounded-lg bg-muted p-3 text-xs">{webhookUrl}</code>
+          <Button
+            size="icon"
+            variant="outline"
+            aria-label="Copiar"
+            onClick={() => {
+              navigator.clipboard.writeText(webhookUrl);
+              toast.success("URL copiada");
+            }}
+          >
+            <Copy className="h-4 w-4" />
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Cadastre esta URL no painel do PicPay. O token usado pelo webhook é o mesmo salvo acima e fica protegido no Vault.
+        </p>
       </section>
     </div>
+  );
+}
+
+function StatusRow({ label, ok }: { label: string; ok: boolean }) {
+  return (
+    <div className="flex items-center gap-2 text-sm">
+      {ok ? <CheckCircle2 className="h-4 w-4 text-success" /> : <XCircle className="h-4 w-4 text-destructive" />}
+      <code>{label}</code>
+      <span className="text-muted-foreground">{ok ? "configurado" : "pendente"}</span>
+    </div>
+  );
+}
+
+function SecretField({
+  label,
+  value,
+  onChange,
+  visible,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  visible: boolean;
+  placeholder: string;
+}) {
+  return (
+    <label className="block space-y-1 text-sm">
+      <span className="font-medium">{label}</span>
+      <input
+        type={visible ? "text" : "password"}
+        autoComplete="new-password"
+        spellCheck={false}
+        className="w-full rounded-lg border bg-background px-3 py-2"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+      />
+    </label>
   );
 }
