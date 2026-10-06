@@ -62,8 +62,7 @@ export const Route = createFileRoute("/api/v1/charges")({
             );
           }
 
-          try {
-            const { consumeApiRateLimit, rateLimitResponse } = await import("@/lib/api-rate-limit.server");
+          const { consumeApiRateLimit, rateLimitResponse } = await import("@/lib/api-rate-limit.server");
             const rateLimit = await consumeApiRateLimit(auth.apiKeyId, "create_charge");
             const limited = rateLimitResponse(rateLimit);
             if (limited) {
