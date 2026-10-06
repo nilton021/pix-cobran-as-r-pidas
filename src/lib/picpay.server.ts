@@ -213,3 +213,15 @@ export async function getPicPayWebhookSecret(integrationId: string): Promise<str
   if (error || !data) throw new Error("Webhook secret PicPay não configurado");
   return data as string;
 }
+
+
+export async function getPicPayWebhookSecret(integrationId: string): Promise<string> {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(integrationId)) {
+    throw new Error("payment_integration_id inválido");
+  }
+  const { data, error } = await supabaseAdmin.rpc("get_picpay_webhook_secret", {
+    p_integration_id: integrationId,
+  });
+  if (error || !data) throw new Error("Webhook secret PicPay não configurado");
+  return data as string;
+}
