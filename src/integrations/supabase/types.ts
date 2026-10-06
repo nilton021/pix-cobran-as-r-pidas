@@ -107,6 +107,7 @@ export type Database = {
           last_error?: string | null
           paid_at?: string | null
           payer?: Json | null
+          payment_integration_id?: string | null
           picpay_charge_id?: string | null
           qr_code?: string | null
           qr_code_base64?: string | null
