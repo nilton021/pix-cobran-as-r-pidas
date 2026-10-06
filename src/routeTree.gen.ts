@@ -18,6 +18,8 @@ import { Route as AuthenticatedContasIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedContasIdRouteImport } from './routes/_authenticated/contas.$id'
 import { Route as ApiPublicPicpayWebhookRouteImport } from './routes/api/public/picpay-webhook'
 import { Route as ApiPublicReconcileChargesRouteImport } from './routes/api/public/reconcile-charges'
+import { Route as ApiV1ChargesRouteImport } from './routes/api/v1/charges'
+import { Route as ApiV1ChargesIdRouteImport } from './routes/api/v1/charges/$id'
 
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
@@ -67,6 +69,16 @@ const ApiPublicReconcileChargesRoute =
     path: '/api/public/reconcile-charges',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiV1ChargesRoute = ApiV1ChargesRouteImport.update({
+  id: '/api/v1/charges',
+  path: '/api/v1/charges',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1ChargesIdRoute = ApiV1ChargesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiV1ChargesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
@@ -76,7 +88,9 @@ export interface FileRoutesByFullPath {
   '/contas/$id': typeof AuthenticatedContasIdRoute
   '/api/public/picpay-webhook': typeof ApiPublicPicpayWebhookRoute
   '/api/public/reconcile-charges': typeof ApiPublicReconcileChargesRoute
+  '/api/v1/charges': typeof ApiV1ChargesRouteWithChildren
   '/contas/': typeof AuthenticatedContasIndexRoute
+  '/api/v1/charges/$id': typeof ApiV1ChargesIdRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -86,7 +100,9 @@ export interface FileRoutesByTo {
   '/contas/$id': typeof AuthenticatedContasIdRoute
   '/api/public/picpay-webhook': typeof ApiPublicPicpayWebhookRoute
   '/api/public/reconcile-charges': typeof ApiPublicReconcileChargesRoute
+  '/api/v1/charges': typeof ApiV1ChargesRouteWithChildren
   '/contas': typeof AuthenticatedContasIndexRoute
+  '/api/v1/charges/$id': typeof ApiV1ChargesIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -98,7 +114,9 @@ export interface FileRoutesById {
   '/_authenticated/contas/$id': typeof AuthenticatedContasIdRoute
   '/api/public/picpay-webhook': typeof ApiPublicPicpayWebhookRoute
   '/api/public/reconcile-charges': typeof ApiPublicReconcileChargesRoute
+  '/api/v1/charges': typeof ApiV1ChargesRouteWithChildren
   '/_authenticated/contas/': typeof AuthenticatedContasIndexRoute
+  '/api/v1/charges/$id': typeof ApiV1ChargesIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -110,7 +128,9 @@ export interface FileRouteTypes {
     | '/contas/$id'
     | '/api/public/picpay-webhook'
     | '/api/public/reconcile-charges'
+    | '/api/v1/charges'
     | '/contas/'
+    | '/api/v1/charges/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -120,7 +140,9 @@ export interface FileRouteTypes {
     | '/contas/$id'
     | '/api/public/picpay-webhook'
     | '/api/public/reconcile-charges'
+    | '/api/v1/charges'
     | '/contas'
+    | '/api/v1/charges/$id'
   id:
     | '__root__'
     | '/_authenticated'
@@ -131,7 +153,9 @@ export interface FileRouteTypes {
     | '/_authenticated/contas/$id'
     | '/api/public/picpay-webhook'
     | '/api/public/reconcile-charges'
+    | '/api/v1/charges'
     | '/_authenticated/contas/'
+    | '/api/v1/charges/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -139,6 +163,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ApiPublicPicpayWebhookRoute: typeof ApiPublicPicpayWebhookRoute
   ApiPublicReconcileChargesRoute: typeof ApiPublicReconcileChargesRoute
+  ApiV1ChargesRoute: typeof ApiV1ChargesRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -206,6 +231,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicReconcileChargesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/v1/charges': {
+      id: '/api/v1/charges'
+      path: '/api/v1/charges'
+      fullPath: '/api/v1/charges'
+      preLoaderRoute: typeof ApiV1ChargesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/charges/$id': {
+      id: '/api/v1/charges/$id'
+      path: '/$id'
+      fullPath: '/api/v1/charges/$id'
+      preLoaderRoute: typeof ApiV1ChargesIdRouteImport
+      parentRoute: typeof ApiV1ChargesRoute
+    }
   }
 }
 
@@ -228,11 +267,24 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface ApiV1ChargesRouteChildren {
+  ApiV1ChargesIdRoute: typeof ApiV1ChargesIdRoute
+}
+
+const ApiV1ChargesRouteChildren: ApiV1ChargesRouteChildren = {
+  ApiV1ChargesIdRoute: ApiV1ChargesIdRoute,
+}
+
+const ApiV1ChargesRouteWithChildren = ApiV1ChargesRoute._addFileChildren(
+  ApiV1ChargesRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   LoginRoute: LoginRoute,
   ApiPublicPicpayWebhookRoute: ApiPublicPicpayWebhookRoute,
   ApiPublicReconcileChargesRoute: ApiPublicReconcileChargesRoute,
+  ApiV1ChargesRoute: ApiV1ChargesRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
