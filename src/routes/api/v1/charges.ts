@@ -14,7 +14,6 @@ export const Route = createFileRoute("/api/v1/charges")({
         try {
           const { authenticateApiKey } = await import("@/lib/api-key-auth.server");
           const auth = await authenticateApiKey(request);
-          const { consumeApiRateLimit, rateLimitResponse } = await import("@/lib/api-rate-limit.server");
           const input = schema.parse(await request.json());
           const idempotencyKey = request.headers.get("Idempotency-Key")?.trim();
           if (!idempotencyKey || idempotencyKey.length > 255) {
@@ -72,7 +71,11 @@ export const Route = createFileRoute("/api/v1/charges")({
             .eq("id", auth.accountId)
             .maybeSingle();
 
-          if (!account) return Response.json({ error: "Conta não encontrada" }, { status: 404 });
+          if (!account) {
+            await releaseIdempotencyKey(auth.apiKeyId, idempotencyKey);
+            ownsReservation = false;
+            return Response.json({ error: "Conta não encontrada" }, { status: 404 });
+          }
 
           const { data: integrations } = await supabaseAdmin
             .from("payment_integrations")
@@ -82,6 +85,8 @@ export const Route = createFileRoute("/api/v1/charges")({
             .eq("status", "ACTIVE");
 
           if (!integrations || integrations.length !== 1) {
+            await releaseIdempotencyKey(auth.apiKeyId, idempotencyKey);
+            ownsReservation = false;
             return Response.json(
               { error: integrations?.length ? "É necessário manter exatamente uma integração PicPay ativa para esta conta." : "Nenhuma integração PicPay ativa configurada para esta conta." },
               { status: 409 },
@@ -138,6 +143,7 @@ export const Route = createFileRoute("/api/v1/charges")({
             console.error("[api/v1/charges] falha", charge.id, msg);
             return Response.json({ error: "Não foi possível gerar o Pix no PicPay." }, { status: 502 });
           }
+          if (ownsReservation) await releaseIdempotencyKey(auth.apiKeyId, idempotencyKey);
         } catch (error) {
           if (error instanceof z.ZodError) return Response.json({ error: "Dados inválidos", details: error.flatten() }, { status: 400 });
           const message = error instanceof Error ? error.message : "Unauthorized";
