@@ -12,9 +12,10 @@ function cfg() {
   if (!base || !clientId || !clientSecret) {
     throw new Error("Credenciais PicPay não configuradas");
   }
-  const apiPath = (process.env["PICPAY_API_PATH"] ?? "/v1").trim();
-  const normalizedApiPath = `/${apiPath.replace(/^\/+|\/+$/g, "")}`;
-  return { base: base.replace(/\/+$/, ""), apiPath: normalizedApiPath, clientId, clientSecret };
+  const apiPath = process.env["PICPAY_API_PATH"]?.trim();
+  if (!apiPath) throw new Error("PICPAY_API_PATH não configurado");
+  const normalizedApiPath = `/${apiPath.replace(/^\\/+|\\/+$/g, "")}`;
+  return { base: base.replace(/\\/+$/, ""), apiPath: normalizedApiPath, clientId, clientSecret };
 }
 
 async function fetchToken(): Promise<string> {
@@ -30,14 +31,12 @@ async function fetchToken(): Promise<string> {
   }
   const json = (await res.json()) as { access_token: string; expires_in?: number };
   const ttl = (json.expires_in ?? 300) * 1000;
-  // Renova 30s antes de expirar
   cache = { token: json.access_token, expiresAt: Date.now() + ttl - 30_000 };
   return json.access_token;
 }
 
 export async function getToken(): Promise<string> {
   if (cache && cache.expiresAt > Date.now()) return cache.token;
-  // Compartilha a mesma Promise entre chamadas concorrentes
   if (!pending) pending = fetchToken().finally(() => { pending = null; });
   return pending;
 }
@@ -61,7 +60,7 @@ export class PicPayError extends Error {
 }
 
 export function sanitizeName(name: string): string {
-  const clean = name.replace(/[^\p{L} &\d]/gu, "").replace(/\s+/g, " ").trim();
+  const clean = name.replace(/[^\\p{L} &\\d]/gu, "").replace(/\\s+/g, " ").trim();
   return clean || "Cliente";
 }
 
@@ -72,6 +71,11 @@ export type PicPayCharge = {
   transactions?: Array<{
     status?: string;
     transactionStatus?: string;
+    paymentType?: string;
+    amount?: number;
+    originalAmount?: number;
+    refundedAmount?: number;
+    updatedAt?: string;
     pix?: { qrCode?: string; qrCodeBase64?: string; endToEndId?: string; payer?: unknown; expiration?: number };
     [k: string]: unknown;
   }>;
@@ -118,15 +122,15 @@ export function mapStatus(chargeStatus?: string, transactionStatus?: string): Ch
   const cs = (chargeStatus ?? "").toUpperCase();
   const ts = (transactionStatus ?? "").toUpperCase();
   if (FINAL.has(cs)) return cs as ChargeStatus;
-  if (cs === "PARTIAL") return "PARTIAL";
+  if (cs === "PARTIAL" || cs === "PARTIALLY_REFUNDED") return "PARTIAL";
   if (cs === "PRE_AUTHORIZED" || cs === "PENDING" || cs === "") {
+    if (ts === "PARTIALLY_REFUNDED") return "PARTIAL";
     if (KNOWN.has(ts)) return ts as ChargeStatus;
   }
   console.warn("[picpay] status não reconhecido", { chargeStatus, transactionStatus });
   return "PENDING";
 }
 
-// Aplica o status vindo da API; nunca regride PAID para PENDING/EXPIRED.
 export async function applyStatus(chargeId: string, remote: PicPayCharge, opts: { forceExpired?: boolean } = {}) {
   const { data: current, error } = await supabaseAdmin.from("charges").select("*").eq("id", chargeId).single();
   if (error || !current) throw new Error("Cobrança não encontrada");
@@ -134,16 +138,37 @@ export async function applyStatus(chargeId: string, remote: PicPayCharge, opts: 
   const tx = remote.transactions?.[0];
   let next = mapStatus(remote.chargeStatus, tx?.status ?? tx?.transactionStatus);
   if (opts.forceExpired && next === "PENDING") next = "EXPIRED";
-  if (current.status === "PAID" && (next === "PENDING" || next === "EXPIRED")) next = "PAID";
+
+  if (current.status === "PAID" && (next === "PENDING" || next === "EXPIRED")) return current;
+
+  if (next === "PAID") {
+    if (tx?.paymentType !== "PIX") throw new Error("Confirmação PAID não é PIX");
+    if (tx.amount !== current.amount_cents) throw new Error("Valor pago divergente da cobrança");
+  }
 
   const update: Record<string, unknown> = { status: next };
-  if (next === "PAID" && !current.paid_at) update.paid_at = new Date().toISOString();
+  if (next === "PAID" && !current.paid_at) {
+    const paidAt = tx?.updatedAt ? new Date(tx.updatedAt) : null;
+    update.paid_at = paidAt && !Number.isNaN(paidAt.getTime()) ? paidAt.toISOString() : new Date().toISOString();
+  }
   if (remote.id && !current.picpay_charge_id) update.picpay_charge_id = remote.id;
   if (tx?.pix?.endToEndId) update.end_to_end_id = tx.pix.endToEndId;
   if (tx?.pix?.payer) update.payer = tx.pix.payer;
 
-  const { data, error: upErr } = await supabaseAdmin.from("charges").update(update).eq("id", chargeId).select().single();
+  const { data, error: upErr } = await supabaseAdmin
+    .from("charges")
+    .update(update)
+    .eq("id", chargeId)
+    .neq("status", "PAID")
+    .select()
+    .maybeSingle();
+
   if (upErr) throw upErr;
+  if (!data) {
+    const { data: latest } = await supabaseAdmin.from("charges").select("*").eq("id", chargeId).single();
+    return latest;
+  }
+
   if (current.status !== next) console.log("[picpay] status atualizado", { chargeId, from: current.status, to: next });
   return data;
 }
