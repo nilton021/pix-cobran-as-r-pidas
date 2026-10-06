@@ -11,6 +11,8 @@ export const Route = createFileRoute("/api/v1/charges")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        let reservationOwner: { apiKeyId: string; idempotencyKey: string } | null = null;
+
         try {
           const { authenticateApiKey } = await import("@/lib/api-key-auth.server");
           const auth = await authenticateApiKey(request);
@@ -49,6 +51,10 @@ export const Route = createFileRoute("/api/v1/charges")({
             return Response.json(existingCharge, { status: reservation.responseStatus });
           }
 
+          if (reservation.kind === "new") {
+            reservationOwner = { apiKeyId: auth.apiKeyId, idempotencyKey };
+          }
+
           if (reservation.kind === "processing") {
             return Response.json(
               { error: "Cobrança com esta Idempotency-Key ainda está sendo processada" },
@@ -73,7 +79,6 @@ export const Route = createFileRoute("/api/v1/charges")({
 
           if (!account) {
             await releaseIdempotencyKey(auth.apiKeyId, idempotencyKey);
-            ownsReservation = false;
             return Response.json({ error: "Conta não encontrada" }, { status: 404 });
           }
 
@@ -86,7 +91,6 @@ export const Route = createFileRoute("/api/v1/charges")({
 
           if (!integrations || integrations.length !== 1) {
             await releaseIdempotencyKey(auth.apiKeyId, idempotencyKey);
-            ownsReservation = false;
             return Response.json(
               { error: integrations?.length ? "É necessário manter exatamente uma integração PicPay ativa para esta conta." : "Nenhuma integração PicPay ativa configurada para esta conta." },
               { status: 409 },
@@ -143,8 +147,11 @@ export const Route = createFileRoute("/api/v1/charges")({
             console.error("[api/v1/charges] falha", charge.id, msg);
             return Response.json({ error: "Não foi possível gerar o Pix no PicPay." }, { status: 502 });
           }
-          if (ownsReservation) await releaseIdempotencyKey(auth.apiKeyId, idempotencyKey);
         } catch (error) {
+          if (reservationOwner) {
+            const { releaseIdempotencyKey } = await import("@/lib/api-idempotency.server");
+            await releaseIdempotencyKey(reservationOwner.apiKeyId, reservationOwner.idempotencyKey);
+          }
           if (error instanceof z.ZodError) return Response.json({ error: "Dados inválidos", details: error.flatten() }, { status: 400 });
           const message = error instanceof Error ? error.message : "Unauthorized";
           if (message === "Rate limit indisponível") return Response.json({ error: "Serviço temporariamente indisponível" }, { status: 503 });
