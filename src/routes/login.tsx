@@ -50,7 +50,7 @@ function Login() {
           options: { data: { full_name: parsed.data.fullName }, emailRedirectTo: window.location.origin },
         });
         if (error) throw error;
-        if (data.session) navigate({ to: "/" });
+        if (data.session) navigate({ to: "/contas" });
         else toast.success("Conta criada! Confirme pelo link enviado ao seu e-mail antes de entrar.");
       }
     } catch (err) {
