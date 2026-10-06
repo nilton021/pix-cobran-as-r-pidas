@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { createApiAuditContext, recordApiAudit } from "@/lib/api-audit.server";
 
 export const Route = createFileRoute("/api/v1/charges/$id")({
   server: {
@@ -7,10 +8,15 @@ export const Route = createFileRoute("/api/v1/charges/$id")({
         try {
           const { authenticateApiKey } = await import("@/lib/api-key-auth.server");
           const auth = await authenticateApiKey(request);
+          audit.accountId = auth.accountId;
+          audit.apiKeyId = auth.apiKeyId;
           const { consumeApiRateLimit, rateLimitResponse } = await import("@/lib/api-rate-limit.server");
           const rateLimit = await consumeApiRateLimit(auth.apiKeyId, "read_charge");
           const limited = rateLimitResponse(rateLimit);
-          if (limited) return limited;
+          if (limited) {
+            await recordApiAudit(audit, { route: "/api/v1/charges/:id", method: "GET", statusCode: 429, eventType: "rate_limited" });
+            return limited;
+          }
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const { data: charge, error } = await supabaseAdmin
             .from("charges")
