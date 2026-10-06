@@ -1,8 +1,14 @@
 import { describe, expect, it } from "vitest";
+import { authSchema } from "@/routes/login";
 
 describe("auth onboarding contract", () => {
-  it("requires a stronger password policy", () => {
-    expect("senha-com-12").toHaveLength(12);
-    expect("curta").toHaveLength(5);
+  it("rejects passwords shorter than 12 characters", () => {
+    const result = authSchema.safeParse({ fullName: "Cliente", email: "cliente@example.com", password: "curta" });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts a valid signup payload", () => {
+    const result = authSchema.safeParse({ fullName: "Cliente", email: "cliente@example.com", password: "senha-segura-12" });
+    expect(result.success).toBe(true);
   });
 });
