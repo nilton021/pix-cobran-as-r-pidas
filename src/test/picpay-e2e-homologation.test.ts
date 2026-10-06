@@ -1,1 +1,63 @@
-import { describe, expect, it } from "vitest";\nimport { readFileSync } from "node:fs";\nimport { resolve } from "node:path";\n\nfunction readRepoFile(path: string): string {\n  return readFileSync(resolve(process.cwd(), path), "utf8");\n}\n\ndescribe("phase 20 PicPay homologation E2E contracts", () => {\n  it("keeps the create-charge flow bound to the linked PicPay integration", () => {\n    const route = readRepoFile("src/routes/api/v1/charges.ts");\n    const picpay = readRepoFile("src/lib/picpay.server.ts");\n    expect(route).toContain("const integrationId = integrations[0].id;");\n    expect(route).toContain("payment_integration_id: integrationId");\n    expect(route).toContain("merchantChargeId: charge.id");\n    expect(route).toContain("await createPixCharge(integrationId");\n    expect(picpay).toContain('picpayFetch(integrationId, "/charge/pix"');\n    expect(picpay).toContain("transactions: [{ amount: input.amountCents, pix: { expiration: input.expirationSeconds } }]");\n  });\n\n  it("keeps the charge lookup and reconciliation integration aware", () => {\n    const route = readRepoFile("src/routes/api/v1/charges/$id.ts");\n    const reconcile = readRepoFile("src/routes/api/public/reconcile-charges.ts");\n    const picpay = readRepoFile("src/lib/picpay.server.ts");\n    expect(route).toContain('.eq("account_id", auth.accountId)');\n    expect(reconcile).toContain('.not("payment_integration_id", "is", null)');\n    expect(reconcile).toContain("getCharge(r.payment_integration_id, r.id)");\n    expect(picpay).toContain("getCharge(integrationId, merchantChargeId)");\n  });\n\n  it("accepts PAID only for a PIX transaction with the exact charge amount", () => {\n    const picpay = readRepoFile("src/lib/picpay.server.ts");\n    expect(picpay).toContain('if (tx?.paymentType !== "PIX") throw new Error("Confirmação PAID não é PIX");');\n    expect(picpay).toContain('if (tx.amount !== current.amount_cents) throw new Error("Valor pago divergente da cobrança");');\n    expect(picpay).toContain("tx?.updatedAt");\n    expect(picpay).toContain("update.paid_at");\n  });\n\n  it("authenticates the webhook before provider confirmation", () => {\n    const webhook = readRepoFile("src/routes/api/public/picpay-webhook.ts");\n    expect(webhook).toContain("getPicPayWebhookSecret(charge.payment_integration_id)");\n    expect(webhook).toContain("safeEqual(raw, expected)");\n    expect(webhook).toContain('await supabaseAdmin.from("webhook_events").insert');\n    expect(webhook).toContain("await getCharge(charge.payment_integration_id, merchantChargeId)");\n    expect(webhook.indexOf("safeEqual(raw, expected)")).toBeLessThan(webhook.indexOf("await getCharge(charge.payment_integration_id, merchantChargeId)"));\n  });\n\n  it("protects cron reconciliation with the internal secret", () => {\n    const reconcile = readRepoFile("src/routes/api/public/reconcile-charges.ts");\n    expect(reconcile).toContain('.eq("key", "cron_secret")');\n    expect(reconcile).toContain("safeEqual(provided, cfg.value)");\n    expect(reconcile).toContain('new Response("Unauthorized", { status: 401 })');\n  });\n\n  it("keeps PicPay environment and API path explicit for homologation", () => {\n    const picpay = readRepoFile("src/lib/picpay.server.ts");\n    expect(picpay).toContain('process.env["PICPAY_API_BASE_URL"]');\n    expect(picpay).toContain('process.env["PICPAY_API_PATH"]?.trim()');\n    expect(picpay).toContain("fetchToken(integrationId)");\n    expect(picpay).toContain("`${base}/oauth2/token`");\n    expect(picpay).toContain("tokenCache.set(integrationId");\n  });\n});
+import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+function readRepoFile(path: string): string {
+  return readFileSync(resolve(process.cwd(), path), "utf8");
+}
+
+describe("phase 20 PicPay homologation E2E contracts", () => {
+  it("keeps the create-charge flow bound to the linked PicPay integration", () => {
+    const route = readRepoFile("src/routes/api/v1/charges.ts");
+    const picpay = readRepoFile("src/lib/picpay.server.ts");
+    expect(route).toContain("const integrationId = integrations[0].id;");
+    expect(route).toContain("payment_integration_id: integrationId");
+    expect(route).toContain("merchantChargeId: charge.id");
+    expect(route).toContain("await createPixCharge(integrationId");
+    expect(picpay).toContain('picpayFetch(integrationId, "/charge/pix"');
+    expect(picpay).toContain("transactions: [{ amount: input.amountCents, pix: { expiration: input.expirationSeconds } }]");
+  });
+
+  it("keeps the charge lookup and reconciliation integration aware", () => {
+    const route = readRepoFile("src/routes/api/v1/charges/$id.ts");
+    const reconcile = readRepoFile("src/routes/api/public/reconcile-charges.ts");
+    const picpay = readRepoFile("src/lib/picpay.server.ts");
+    expect(route).toContain('.eq("account_id", auth.accountId)');
+    expect(reconcile).toContain('.not("payment_integration_id", "is", null)');
+    expect(reconcile).toContain("getCharge(r.payment_integration_id, r.id)");
+    expect(picpay).toContain("getCharge(integrationId, merchantChargeId)");
+  });
+
+  it("accepts PAID only for a PIX transaction with the exact charge amount", () => {
+    const picpay = readRepoFile("src/lib/picpay.server.ts");
+    expect(picpay).toContain('if (tx?.paymentType !== "PIX") throw new Error("Confirmação PAID não é PIX");');
+    expect(picpay).toContain('if (tx.amount !== current.amount_cents) throw new Error("Valor pago divergente da cobrança");');
+    expect(picpay).toContain("tx?.updatedAt");
+    expect(picpay).toContain("update.paid_at");
+  });
+
+  it("authenticates the webhook before provider confirmation", () => {
+    const webhook = readRepoFile("src/routes/api/public/picpay-webhook.ts");
+    expect(webhook).toContain("getPicPayWebhookSecret(charge.payment_integration_id)");
+    expect(webhook).toContain("safeEqual(raw, expected)");
+    expect(webhook).toContain('await supabaseAdmin.from("webhook_events").insert');
+    expect(webhook).toContain("await getCharge(charge.payment_integration_id, merchantChargeId)");
+    expect(webhook.indexOf("safeEqual(raw, expected)")).toBeLessThan(webhook.indexOf("await getCharge(charge.payment_integration_id, merchantChargeId)"));
+  });
+
+  it("protects cron reconciliation with the internal secret", () => {
+    const reconcile = readRepoFile("src/routes/api/public/reconcile-charges.ts");
+    expect(reconcile).toContain('.eq("key", "cron_secret")');
+    expect(reconcile).toContain("safeEqual(provided, cfg.value)");
+    expect(reconcile).toContain('new Response("Unauthorized", { status: 401 })');
+  });
+
+  it("keeps PicPay environment and API path explicit for homologation", () => {
+    const picpay = readRepoFile("src/lib/picpay.server.ts");
+    expect(picpay).toContain('process.env["PICPAY_API_BASE_URL"]');
+    expect(picpay).toContain('process.env["PICPAY_API_PATH"]?.trim()');
+    expect(picpay).toContain("fetchToken(integrationId)");
+    expect(picpay).toContain("${base}/oauth2/token");
+    expect(picpay).toContain("tokenCache.set(integrationId");
+  });
+});
