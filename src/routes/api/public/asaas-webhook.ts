@@ -85,7 +85,7 @@ export const Route = createFileRoute("/api/public/asaas-webhook")({
             .from("charges")
             .update({
               status,
-              paid_at: status === "PAID" ? (current?.paid_at ?? new Date().toISOString()) : current?.paid_at,
+              paid_at: status === "PAID" ? (charge.paid_at ?? new Date().toISOString()) : charge.paid_at,
               last_error: null,
             })
             .eq("id", charge.id)
