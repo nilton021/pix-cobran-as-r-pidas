@@ -38,7 +38,7 @@ export function AccountDialog({ open, onOpenChange, account }: { open: boolean; 
       ? await supabase.from("accounts").update(payload).eq("id", account.id)
       : await supabase.from("accounts").insert({ ...payload, owner_id: u.user!.id });
     setSaving(false);
-    if (error) return toast.error("Erro ao salvar conta");
+    if (error) { toast.error("Erro ao salvar conta"); return; }
     toast.success(account ? "Conta atualizada" : "Conta criada");
     qc.invalidateQueries({ queryKey: ["accounts"] });
     qc.invalidateQueries({ queryKey: ["account"] });

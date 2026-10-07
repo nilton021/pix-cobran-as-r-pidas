@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import type { Json } from "@/integrations/supabase/types";
 
 export type ApiAuditContext = {
   requestId: string;
@@ -34,7 +35,7 @@ export async function recordApiAudit(
     status_code: input.statusCode,
     duration_ms: Math.max(0, Date.now() - context.startedAt),
     event_type: input.eventType ?? "api_request",
-    metadata: input.metadata ?? {},
+    metadata: (input.metadata ?? {}) as unknown as Json,
   });
 
   if (error) console.error("[api-audit] falha ao registrar evento", error.message);

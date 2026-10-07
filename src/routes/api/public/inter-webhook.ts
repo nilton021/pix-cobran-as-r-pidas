@@ -15,7 +15,7 @@ export const Route = createFileRoute("/api/public/inter-webhook")({
         const { data: charge } = await supabaseAdmin
           .from("charges")
           .select("id, payment_integration_id, amount_cents, status")
-          .eq("provider_charge_id", txid)
+          .eq("provider_charge_id" as any, txid)
           .limit(1)
           .maybeSingle();
         if (!charge?.payment_integration_id) return new Response("Not Found", { status: 404 });
@@ -47,9 +47,9 @@ export const Route = createFileRoute("/api/public/inter-webhook")({
         }
 
         const update: Record<string, unknown> = { status, last_error: null };
-        if (status === "PAID") update.paid_at = new Date().toISOString();
-        if (endToEndId) update.end_to_end_id = endToEndId;
-        await supabaseAdmin.from("charges").update(update).eq("id", charge.id).neq("status", "PAID");
+        if (status === "PAID") update["paid_at"] = new Date().toISOString();
+        if (endToEndId) update["end_to_end_id"] = endToEndId;
+        await supabaseAdmin.from("charges").update(update as any).eq("id", charge.id).neq("status", "PAID");
 
         return new Response("ok", { status: 200 });
       },
