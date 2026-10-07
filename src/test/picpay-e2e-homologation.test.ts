@@ -24,7 +24,7 @@ describe("phase 20 PicPay homologation E2E contracts", () => {
     const picpay = readRepoFile("src/lib/picpay.server.ts");
     expect(route).toContain('.eq("account_id", auth.accountId)');
     expect(reconcile).toContain('.not("payment_integration_id", "is", null)');
-    expect(reconcile).toContain("getCharge(r.payment_integration_id, r.id)");
+    expect(reconcile).toContain("getPicPayCharge(r.payment_integration_id, r.id)");
     expect(picpay).toContain("export async function getCharge(\n  integrationId: string,");
   });
 
@@ -60,6 +60,7 @@ describe("phase 20 PicPay homologation E2E contracts", () => {
     expect(picpay).toContain("${base}/oauth2/token");
     expect(picpay).toContain("tokenCache.set(integrationId");
   });
+
   it("prevents non-PicPay providers from accepting PAID without exact value", () => {
     const source = readRepoFile("src/lib/charges.functions.ts");
     expect(source).toContain('Math.round(Number(paidValue) * 100) !== owned.amount_cents');
@@ -73,5 +74,4 @@ describe("phase 20 PicPay homologation E2E contracts", () => {
     expect(picpay).toContain('if (current.status === "PAID" && !AFTER_PAID.has(next)) return current;');
     expect(picpay).toContain('.eq("status", current.status)');
   });
-
 });
