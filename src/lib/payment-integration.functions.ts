@@ -10,7 +10,7 @@ const input = z.object({
   environment: z.enum(["SANDBOX", "PRODUCTION"]),
   credential1: z.string().max(4000).optional().default(""),
   credential2: z.string().max(4000).optional().default(""),
-  credential3: z.string().max(4000).optional().default(""),
+  credential3: z.string().max(1000000).optional().default(""),
   credential4: z.string().max(4000).optional().default(""),
   credential5: z.string().max(4000).optional().default(""),
   credential6: z.string().max(4000).optional().default(""),
