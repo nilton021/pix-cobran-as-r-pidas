@@ -7,7 +7,7 @@ type EfiConfig = {
   client_id: string;
   client_secret: string;
   certificate_base64: string;
-  certificate_password?: string;
+  certificate_password: string | null;
   pix_key: string;
   webhook_hmac: string;
 };
@@ -17,10 +17,10 @@ const cache = new Map<string, Token>();
 const pending = new Map<string, Promise<string>>();
 
 async function config(id: string): Promise<EfiConfig> {
-  const { data, error } = await (supabaseAdmin as any).rpc("get_efi_integration_credentials", {
+  const { data, error } = await supabaseAdmin.rpc("get_efi_integration_credentials", {
     p_integration_id: id,
   });
-  const c = data?.[0] as EfiConfig | undefined;
+  const c = data?.[0];
   if (
     error ||
     !c?.client_id ||
@@ -87,7 +87,7 @@ async function token(id: string) {
     const res = await request(base(c.environment) + "/oauth/token", {
       method: "POST",
       certificate: c.certificate_base64,
-      password: c.certificate_password,
+      password: c.certificate_password ?? undefined,
       headers: {
         Authorization: "Basic " + auth,
         "Content-Type": "application/json",
@@ -125,7 +125,7 @@ async function call(id: string, path: string, method = "GET", body?: unknown) {
     request(base(c.environment) + path, {
       method,
       certificate: c.certificate_base64,
-      password: c.certificate_password,
+      password: c.certificate_password ?? undefined,
       headers: { ...headers, Authorization: "Bearer " + tokenValue },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
