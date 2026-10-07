@@ -133,7 +133,7 @@ security definer
 set search_path = ''
 as $$
 begin
-  if (select auth.role()) <> 'service_role' then
+  if coalesce(current_setting('request.jwt.claim.role', true), '') <> 'service_role' then
     raise exception 'Acesso restrito ao service_role';
   end if;
 
