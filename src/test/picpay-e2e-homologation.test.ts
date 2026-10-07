@@ -57,7 +57,7 @@ describe("phase 20 PicPay homologation E2E contracts", () => {
     expect(picpay).toContain('process.env["PICPAY_API_BASE_URL"]');
     expect(picpay).toContain('process.env["PICPAY_API_PATH"]?.trim()');
     expect(picpay).toContain("fetchToken(integrationId)");
-    expect(picpay).toContain("\${base}/oauth2/token");
+    expect(picpay).toContain("${base}/oauth2/token");
     expect(picpay).toContain("tokenCache.set(integrationId");
   });
 
