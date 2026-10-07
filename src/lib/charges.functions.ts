@@ -127,7 +127,7 @@ export const syncCharge = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: owned } = await context.supabase
       .from("charges")
-      .select("id, payment_integration_id, provider_charge_id")
+      .select("id, payment_integration_id, provider_charge_id, amount_cents, status, paid_at")
       .eq("id", data.chargeId)
       .maybeSingle();
     if (!owned?.payment_integration_id) throw new Error("Cobrança não encontrada");
@@ -142,11 +142,17 @@ export const syncCharge = createServerFn({ method: "POST" })
     if (integration?.provider === "INTER") {
       const { getCharge, statusToLocal } = await import("./inter.server");
       if (!owned.provider_charge_id) throw new Error("Cobrança Inter sem txid");
-      const remote = await getCharge(owned.payment_integration_id, owned.provider_charge_id) as { status?: string };
+      const remote = await getCharge(owned.payment_integration_id, owned.provider_charge_id) as { status?: string; valor?: { original?: string | number } };
       const status = statusToLocal(remote.status);
+      if (status === "PAID") {
+        const paidValue = remote.valor?.original;
+        if (paidValue === undefined || paidValue === null || Math.round(Number(paidValue) * 100) !== owned.amount_cents) {
+          throw new Error("Valor pago divergente ou ausente na confirmação do Banco Inter");
+        }
+      }
       const { data: updated, error } = await supabaseAdmin.from("charges").update({
-        status, paid_at: status === "PAID" ? new Date().toISOString() : null, last_error: null,
-      }).eq("id", data.chargeId).select().single();
+        status, paid_at: status === "PAID" ? (owned.paid_at ?? new Date().toISOString()) : owned.paid_at, last_error: null,
+      }).eq("id", data.chargeId).neq("status", "PAID").select().single();
       if (error) throw error;
       return updated;
     }
@@ -154,13 +160,19 @@ export const syncCharge = createServerFn({ method: "POST" })
     if (integration?.provider === "EFI") {
       const { getCharge, statusToLocal } = await import("./efi.server");
       if (!owned.provider_charge_id) throw new Error("Cobrança Efí sem txid");
-      const remote = await getCharge(owned.payment_integration_id, owned.provider_charge_id) as { status?: string };
+      const remote = await getCharge(owned.payment_integration_id, owned.provider_charge_id) as { status?: string; valor?: { original?: string | number } };
       const status = statusToLocal(remote.status);
+      if (status === "PAID") {
+        const paidValue = remote.valor?.original;
+        if (paidValue === undefined || paidValue === null || Math.round(Number(paidValue) * 100) !== owned.amount_cents) {
+          throw new Error("Valor pago divergente ou ausente na confirmação da Efí");
+        }
+      }
       const { data: updated, error } = await supabaseAdmin.from("charges").update({
         status,
-        paid_at: status === "PAID" ? new Date().toISOString() : null,
+        paid_at: status === "PAID" ? (owned.paid_at ?? new Date().toISOString()) : owned.paid_at,
         last_error: null,
-      }).eq("id", data.chargeId).select().single();
+      }).eq("id", data.chargeId).neq("status", "PAID").select().single();
       if (error) throw error;
       return updated;
     }
@@ -168,13 +180,18 @@ export const syncCharge = createServerFn({ method: "POST" })
     if (integration?.provider === "ASAAS") {
       const { getPayment, statusToLocal } = await import("./asaas.server");
       if (!owned.provider_charge_id) throw new Error("Cobrança Asaas sem identificador remoto");
-      const remote = await getPayment(owned.payment_integration_id, owned.provider_charge_id);
+      const remote = await getPayment(owned.payment_integration_id, owned.provider_charge_id) as { status?: string; value?: number };
       const status = statusToLocal(remote.status);
+      if (status === "PAID") {
+        if (remote.value === undefined || remote.value === null || Math.round(remote.value * 100) !== owned.amount_cents) {
+          throw new Error("Valor pago divergente ou ausente na confirmação do Asaas");
+        }
+      }
       const { data: updated, error } = await supabaseAdmin.from("charges").update({
         status,
-        paid_at: status === "PAID" ? new Date().toISOString() : null,
+        paid_at: status === "PAID" ? (owned.paid_at ?? new Date().toISOString()) : owned.paid_at,
         last_error: null,
-      }).eq("id", data.chargeId).select().single();
+      }).eq("id", data.chargeId).neq("status", "PAID").select().single();
       if (error) throw error;
       return updated;
     }
