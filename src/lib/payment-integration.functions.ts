@@ -5,12 +5,15 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 const input = z.object({
   accountId: z.string().uuid(),
   integrationId: z.string().uuid().optional(),
-  provider: z.enum(["PICPAY", "ASAAS"]),
+  provider: z.enum(["PICPAY", "ASAAS", "INTER"]),
   displayName: z.string().trim().min(1).max(80),
   environment: z.enum(["SANDBOX", "PRODUCTION"]),
   credential1: z.string().max(4000).optional().default(""),
   credential2: z.string().max(4000).optional().default(""),
   credential3: z.string().max(4000).optional().default(""),
+  credential4: z.string().max(4000).optional().default(""),
+  credential5: z.string().max(4000).optional().default(""),
+  credential6: z.string().max(4000).optional().default(""),
 });
 
 export const getPaymentSettings = createServerFn({ method: "GET" })
@@ -50,6 +53,23 @@ export const savePaymentIntegration = createServerFn({ method: "POST" })
         p_webhook_secret: data.credential3 || null,
       });
       if (rpcError || !id) throw new Error(rpcError?.message || "Não foi possível salvar o PicPay");
+      return { integrationId: id };
+    }
+
+    if (data.provider === "INTER") {
+      const { data: id, error: rpcError } = await (context.supabase as any).rpc("save_inter_integration", {
+        p_account_id: account.id,
+        p_integration_id: data.integrationId ?? null,
+        p_display_name: data.displayName,
+        p_environment: data.environment,
+        p_client_id: data.credential1 || null,
+        p_client_secret: data.credential2 || null,
+        p_cert_pem: data.credential3 || null,
+        p_key_pem: data.credential4 || null,
+        p_pix_key: data.credential5 || null,
+        p_account_number: data.credential6 || null,
+      });
+      if (rpcError || !id) throw new Error(rpcError?.message || "Não foi possível salvar o Banco Inter");
       return { integrationId: id };
     }
 
