@@ -50,7 +50,7 @@ export const createCharge = createServerFn({ method: "POST" })
     if (insErr || !charge) throw new Error("Não foi possível criar a cobrança");
 
     try {
-      const result = provider === "ASAAS"
+      const result: any = provider === "ASAAS"
         ? await asaas!.createPixCharge(paymentIntegrationId, {
             externalReference: charge.id, name: account.name, email: account.email,
             document: account.document, amountCents: data.amountCents,
