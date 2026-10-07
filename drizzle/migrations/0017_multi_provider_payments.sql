@@ -13,9 +13,6 @@ alter table public.charges
 create index if not exists charges_provider_charge_idx
   on public.charges(payment_integration_id, provider_charge_id);
 
-create unique index if not exists webhook_events_event_id_unique_idx
-  on public.webhook_events(event_id)
-  where event_id is not null;
 
 create or replace function public.save_asaas_integration(
   p_account_id uuid,
