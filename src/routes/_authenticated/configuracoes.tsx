@@ -35,12 +35,15 @@ function Config() {
   const save = useServerFn(savePaymentIntegration);
   const [accountId, setAccountId] = useState("");
   const [integrationId, setIntegrationId] = useState("");
-  const [provider, setProvider] = useState<"PICPAY" | "ASAAS">("PICPAY");
+  const [provider, setProvider] = useState<"PICPAY" | "ASAAS" | "INTER">("PICPAY");
   const [displayName, setDisplayName] = useState("PicPay");
   const [environment, setEnvironment] = useState<"SANDBOX" | "PRODUCTION">("PRODUCTION");
   const [credential1, setCredential1] = useState("");
   const [credential2, setCredential2] = useState("");
   const [credential3, setCredential3] = useState("");
+  const [credential4, setCredential4] = useState("");
+  const [credential5, setCredential5] = useState("");
+  const [credential6, setCredential6] = useState("");
   const [showSecrets, setShowSecrets] = useState(false);
   const [origin, setOrigin] = useState("");
 
@@ -62,10 +65,13 @@ function Config() {
     if (selected) {
       setDisplayName(selected.display_name);
       setEnvironment(selected.environment);
-      if (selected.provider === "PICPAY" || selected.provider === "ASAAS") setProvider(selected.provider);
+      if (selected.provider === "PICPAY" || selected.provider === "ASAAS" || selected.provider === "INTER") setProvider(selected.provider);
       setCredential1("");
       setCredential2("");
       setCredential3("");
+      setCredential4("");
+      setCredential5("");
+      setCredential6("");
     }
   }, [selected]);
 
@@ -80,6 +86,9 @@ function Config() {
         credential1,
         credential2,
         credential3,
+        credential4,
+        credential5,
+        credential6,
       },
     }),
     onSuccess: (result) => {
@@ -87,6 +96,9 @@ function Config() {
       setCredential1("");
       setCredential2("");
       setCredential3("");
+      setCredential4("");
+      setCredential5("");
+      setCredential6("");
       toast.success("Integração salva com segurança no Vault.");
       queryClient.invalidateQueries({ queryKey: ["payment-settings", accountId] });
       queryClient.invalidateQueries({ queryKey: ["payment-settings", "current"] });
@@ -95,7 +107,7 @@ function Config() {
   });
 
   const webhookUrl = origin
-    ? origin + "/api/public/" + (provider === "ASAAS" ? "asaas-webhook" : "picpay-webhook")
+    ? origin + "/api/public/" + (provider === "ASAAS" ? "asaas-webhook" : provider === "INTER" ? "inter-webhook" : "picpay-webhook")
     : "/api/public/" + (provider === "ASAAS" ? "asaas-webhook" : "picpay-webhook");
 
   const isEditing = Boolean(selected);
@@ -118,7 +130,7 @@ function Config() {
               type="button"
               disabled={item.status !== "available"}
               onClick={() => {
-                if (item.id === "PICPAY" || item.id === "ASAAS") {
+                if (item.id === "PICPAY" || item.id === "ASAAS" || item.id === "INTER") {
                   setProvider(item.id);
                   setIntegrationId("");
                   setDisplayName(item.name);
@@ -141,7 +153,7 @@ function Config() {
       <section className="space-y-4 rounded-xl border bg-card p-5">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 className="font-bold">Integração {provider === "ASAAS" ? "Asaas" : "PicPay"}</h2>
+            <h2 className="font-bold">Integração {provider === "ASAAS" ? "Asaas" : provider === "INTER" ? "Banco Inter" : "PicPay"}</h2>
             <p className="text-xs text-muted-foreground">
               {isEditing
                 ? "Editando a integração. As credenciais atuais nunca são exibidas."
@@ -188,7 +200,7 @@ function Config() {
           value={credential1}
           onChange={setCredential1}
           visible={showSecrets}
-          placeholder={isEditing ? "Deixe vazio para manter o atual" : provider === "ASAAS" ? "API Key do Asaas" : "Client ID do PicPay"}
+          placeholder={isEditing ? "Deixe vazio para manter o atual" : provider === "ASAAS" ? "API Key do Asaas" : "Client ID do Banco Inter"}
         />
 
         <SecretField
@@ -196,7 +208,7 @@ function Config() {
           value={credential2}
           onChange={setCredential2}
           visible={showSecrets}
-          placeholder={isEditing ? "Deixe vazio para manter o atual" : provider === "ASAAS" ? "Token do webhook Asaas" : "Client Secret do PicPay"}
+          placeholder={isEditing ? "Deixe vazio para manter o atual" : provider === "ASAAS" ? "Token do webhook Asaas" : "Client Secret do Banco Inter"}
         />
 
         {provider === "PICPAY" && (
@@ -207,6 +219,15 @@ function Config() {
             visible={showSecrets}
             placeholder={isEditing ? "Deixe vazio para manter o atual" : "Token da URL de notificação do PicPay"}
           />
+        )}
+
+        {provider === "INTER" && (
+          <>
+            <SecretField label="Certificado mTLS (.crt/PEM)" value={credential3} onChange={setCredential3} visible={showSecrets} placeholder={isEditing ? "Deixe vazio para manter o atual" : "Cole o conteúdo PEM do certificado"} />
+            <SecretField label="Chave privada mTLS (.key/PEM)" value={credential4} onChange={setCredential4} visible={showSecrets} placeholder={isEditing ? "Deixe vazio para manter o atual" : "Cole o conteúdo PEM da chave privada"} />
+            <SecretField label="Chave Pix" value={credential5} onChange={setCredential5} visible={showSecrets} placeholder={isEditing ? "Deixe vazio para manter o atual" : "Chave Pix da conta Inter"} />
+            <SecretField label="Conta corrente (opcional)" value={credential6} onChange={setCredential6} visible={showSecrets} placeholder="Somente se a integração enxergar mais de uma conta" />
+          </>
         )}
 
         <div className="flex flex-wrap items-center gap-3">
