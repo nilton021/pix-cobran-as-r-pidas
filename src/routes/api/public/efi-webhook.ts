@@ -1,5 +1,14 @@
 import { createHash } from "node:crypto";
 import { createFileRoute } from "@tanstack/react-router";
+import type { TablesUpdate } from "@/integrations/supabase/types";
+
+type EfiWebhookPayload = {
+  pix?: Array<{ txid?: unknown; endToEndId?: unknown }>;
+};
+type EfiCharge = {
+  status?: string;
+  valor?: { original?: string | number };
+};
 
 export const Route = createFileRoute("/api/public/efi-webhook")({
   server: {
@@ -7,7 +16,7 @@ export const Route = createFileRoute("/api/public/efi-webhook")({
       POST: async ({ request }) => {
         const url = new URL(request.url);
         const suppliedHmac = url.searchParams.get("hmac") ?? "";
-        const payload = (await request.json().catch(() => null)) as any;
+        const payload = (await request.json().catch(() => null)) as EfiWebhookPayload | null;
         const pix = Array.isArray(payload?.pix) ? payload.pix[0] : null;
         const txid = typeof pix?.txid === "string" ? pix.txid : null;
 
@@ -23,7 +32,7 @@ export const Route = createFileRoute("/api/public/efi-webhook")({
         const { data: charge } = await supabaseAdmin
           .from("charges")
           .select("id, payment_integration_id, amount_cents, status")
-          .eq("provider_charge_id" as any, txid)
+          .eq("provider_charge_id", txid)
           .limit(1)
           .maybeSingle();
 
@@ -43,7 +52,7 @@ export const Route = createFileRoute("/api/public/efi-webhook")({
           return new Response("Unauthorized", { status: 401 });
         }
 
-        let remote: any;
+        let remote: EfiCharge;
         try {
           remote = await getCharge(charge.payment_integration_id, txid);
         } catch {
@@ -74,13 +83,13 @@ export const Route = createFileRoute("/api/public/efi-webhook")({
           });
         }
 
-        const update: Record<string, unknown> = { status, last_error: null };
-        if (status === "PAID") update["paid_at"] = new Date().toISOString();
-        if (endToEndId) update["end_to_end_id"] = endToEndId;
+        const update: TablesUpdate<"charges"> = { status, last_error: null };
+        if (status === "PAID") update.paid_at = new Date().toISOString();
+        if (endToEndId) update.end_to_end_id = endToEndId;
 
         await supabaseAdmin
           .from("charges")
-          .update(update as any)
+          .update(update)
           .eq("id", charge.id)
           .neq("status", "PAID");
 
