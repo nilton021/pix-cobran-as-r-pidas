@@ -31,7 +31,7 @@ export const Route = createFileRoute("/api/public/asaas-webhook")({
         );
         const { data: candidates } = await supabaseAdmin
           .from("charges")
-          .select("id, payment_integration_id")
+          .select("id, payment_integration_id, amount_cents, status, paid_at")
           .eq("provider_charge_id", remoteId)
           .limit(1);
         const charge = candidates?.[0];
@@ -77,11 +77,10 @@ export const Route = createFileRoute("/api/public/asaas-webhook")({
           );
           const status = statusToLocal(remote.status);
           if (status === "PAID") {
-            if (remote.value === undefined || remote.value === null || Math.round(remote.value * 100) !== (await supabaseAdmin.from("charges").select("amount_cents").eq("id", charge.id).single()).data?.amount_cents) {
+            if (remote.value === undefined || remote.value === null || Math.round(remote.value * 100) !== charge.amount_cents) {
               return new Response("Payment amount mismatch", { status: 409 });
             }
           }
-          const { data: current } = await supabaseAdmin.from("charges").select("status, paid_at").eq("id", charge.id).single();
           await supabaseAdmin
             .from("charges")
             .update({
