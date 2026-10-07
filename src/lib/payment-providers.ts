@@ -2,7 +2,7 @@ export const PAYMENT_PROVIDERS = [
   { id: "PICPAY", name: "PicPay", status: "available" },
   { id: "ASAAS", name: "Asaas", status: "available" },
   { id: "INTER", name: "Banco Inter", status: "available" },
-  { id: "EFI", name: "Efí Bank", status: "planned" },
+  { id: "EFI", name: "Efí Bank", status: "available" },
   { id: "MERCADOPAGO", name: "Mercado Pago", status: "planned" },
   { id: "NUBANK", name: "Nubank", status: "planned" },
   { id: "ITAU", name: "Itaú", status: "planned" },
