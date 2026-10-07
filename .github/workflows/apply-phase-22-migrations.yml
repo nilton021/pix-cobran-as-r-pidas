@@ -76,6 +76,19 @@ jobs:
             \i drizzle/migrations/0016_picpay_integration_vault_management.sql
           \endif
 
+          select exists (
+            select 1 from pg_constraint
+            where conrelid = 'public.payment_integrations'::regclass
+              and conname = 'payment_integrations_provider_check'
+              and pg_get_constraintdef(oid) like '%ASAAS%'
+          ) as migration_0017_done \gset
+          \if :migration_0017_done
+            \echo '0017 já aplicada; validando multi-provider'
+          \else
+            \echo 'Aplicando 0017'
+            \i drizzle/migrations/0017_multi_provider_payments.sql
+          \endif
+
           commit;
 
           select
