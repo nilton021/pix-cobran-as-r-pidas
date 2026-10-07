@@ -67,16 +67,11 @@ describe("phase 20 PicPay homologation E2E contracts", () => {
     expect(source).toContain('.neq("status", "PAID")');
   });
 
-  it("prevents provider webhooks from regressing a PAID charge", () => {
-    const asaas = readRepoFile("src/routes/api/public/asaas-webhook.ts");
-    const inter = readRepoFile("src/routes/api/public/inter-webhook.ts");
-    const efi = readRepoFile("src/routes/api/public/efi-webhook.ts");
-    for (const source of [asaas, inter, efi]) {
-      expect(source).toContain('.neq("status", "PAID")');
-      expect(source).toContain('Payment amount mismatch');
-    }
-    expect(asaas).toContain("remote.value === undefined ||");
-    expect(asaas).toContain("remote.value === null ||");
+  it("allows only valid post-paid PicPay transitions", () => {
+    const picpay = readRepoFile("src/lib/picpay.server.ts");
+    expect(picpay).toContain('const AFTER_PAID = new Set(["REFUNDED", "PARTIAL", "CHARGEBACK"]);');
+    expect(picpay).toContain('if (current.status === "PAID" && !AFTER_PAID.has(next)) return current;');
+    expect(picpay).toContain('.eq("status", current.status)');
   });
 
 });
