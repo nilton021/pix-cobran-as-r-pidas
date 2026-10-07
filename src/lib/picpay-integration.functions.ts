@@ -69,7 +69,7 @@ export const savePicPayIntegration = createServerFn({ method: "POST" })
 
     if (accountError || !account) throw new Error("Conta não encontrada");
 
-    const { data: integrationId, error } = await (context.supabase as any).rpc("save_picpay_integration", {
+    const { data: integrationId, error } = await context.supabase.rpc("save_picpay_integration", {
       p_account_id: account.id,
       p_integration_id: data.integrationId ?? null,
       p_display_name: data.displayName,
