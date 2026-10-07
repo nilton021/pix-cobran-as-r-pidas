@@ -159,7 +159,8 @@ export async function applyStatus(chargeId: string, remote: PicPayCharge, opts: 
   let next = mapStatus(remote.chargeStatus, tx?.status ?? tx?.transactionStatus);
   if (opts.forceExpired && next === "PENDING") next = "EXPIRED";
 
-  if (current.status === "PAID" && (next === "PENDING" || next === "EXPIRED")) return current;
+  const AFTER_PAID = new Set(["REFUNDED", "PARTIAL", "CHARGEBACK"]);
+  if (current.status === "PAID" && !AFTER_PAID.has(next)) return current;
 
   if (next === "PAID") {
     if (tx?.paymentType !== "PIX") throw new Error("Confirmação PAID não é PIX");
@@ -179,7 +180,7 @@ export async function applyStatus(chargeId: string, remote: PicPayCharge, opts: 
     .from("charges")
     .update(update)
     .eq("id", chargeId)
-    .neq("status", "PAID")
+    .eq("status", current.status)
     .select()
     .maybeSingle();
 
