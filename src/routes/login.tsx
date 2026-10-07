@@ -1,8 +1,8 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
-import { QrCode } from "lucide-react";
+import { QrCode, BookOpen } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -66,6 +66,7 @@ function Login() {
           <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-brand text-primary-foreground"><QrCode className="h-7 w-7" /></span>
           <h1 className="mt-4 text-2xl font-extrabold">Pix Charges</h1>
           <p className="text-sm text-muted-foreground">Cobranças Pix com QR Code dinâmico</p>
+          <Link to="/como-funciona" className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"><BookOpen className="h-4 w-4" /> Como funciona?</Link>
         </div>
         <form onSubmit={submit} className="space-y-4 rounded-2xl border bg-card p-6 shadow-sm">
           <Tabs value={mode} onValueChange={(v) => setMode(v as "in" | "up")}>
