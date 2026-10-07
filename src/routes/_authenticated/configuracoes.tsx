@@ -35,7 +35,7 @@ function Config() {
   const save = useServerFn(savePaymentIntegration);
   const [accountId, setAccountId] = useState("");
   const [integrationId, setIntegrationId] = useState("");
-  const [provider, setProvider] = useState<"PICPAY" | "ASAAS" | "INTER">("PICPAY");
+  const [provider, setProvider] = useState<"PICPAY" | "ASAAS" | "INTER" | "EFI">("PICPAY");
   const [displayName, setDisplayName] = useState("PicPay");
   const [environment, setEnvironment] = useState<"SANDBOX" | "PRODUCTION">("PRODUCTION");
   const [credential1, setCredential1] = useState("");
@@ -46,6 +46,7 @@ function Config() {
   const [credential6, setCredential6] = useState("");
   const [showSecrets, setShowSecrets] = useState(false);
   const [origin, setOrigin] = useState("");
+  const [efiWebhookHmac, setEfiWebhookHmac] = useState("");
 
   useEffect(() => setOrigin(window.location.origin), []);
 
@@ -65,7 +66,7 @@ function Config() {
     if (selected) {
       setDisplayName(selected.display_name);
       setEnvironment(selected.environment);
-      if (selected.provider === "PICPAY" || selected.provider === "ASAAS" || selected.provider === "INTER") setProvider(selected.provider);
+      if (selected.provider === "PICPAY" || selected.provider === "ASAAS" || selected.provider === "INTER" || selected.provider === "EFI") setProvider(selected.provider);
       setCredential1("");
       setCredential2("");
       setCredential3("");
@@ -99,6 +100,9 @@ function Config() {
       setCredential4("");
       setCredential5("");
       setCredential6("");
+      if (provider === "EFI" && "webhookHmac" in result && result.webhookHmac) {
+        setEfiWebhookHmac(result.webhookHmac);
+      }
       toast.success("Integração salva com segurança no Vault.");
       queryClient.invalidateQueries({ queryKey: ["payment-settings", accountId] });
       queryClient.invalidateQueries({ queryKey: ["payment-settings", "current"] });
@@ -106,9 +110,14 @@ function Config() {
     onError: (error) => toast.error(error.message),
   });
 
-  const webhookUrl = origin
-    ? origin + "/api/public/" + (provider === "ASAAS" ? "asaas-webhook" : provider === "INTER" ? "inter-webhook" : "picpay-webhook")
-    : "/api/public/" + (provider === "ASAAS" ? "asaas-webhook" : "picpay-webhook");
+  const efiWebhookUrl = origin && efiWebhookHmac
+    ? origin + "/api/public/efi-webhook?hmac=" + encodeURIComponent(efiWebhookHmac) + "&ignorar="
+    : "";
+  const webhookUrl = provider === "EFI"
+    ? efiWebhookUrl || (origin ? origin + "/api/public/efi-webhook" : "/api/public/efi-webhook")
+    : origin
+      ? origin + "/api/public/" + (provider === "ASAAS" ? "asaas-webhook" : provider === "INTER" ? "inter-webhook" : "picpay-webhook")
+      : "/api/public/" + (provider === "ASAAS" ? "asaas-webhook" : provider === "INTER" ? "inter-webhook" : "picpay-webhook");
 
   const isEditing = Boolean(selected);
 
@@ -130,7 +139,7 @@ function Config() {
               type="button"
               disabled={item.status !== "available"}
               onClick={() => {
-                if (item.id === "PICPAY" || item.id === "ASAAS" || item.id === "INTER") {
+                if (item.id === "PICPAY" || item.id === "ASAAS" || item.id === "INTER" || item.id === "EFI") {
                   setProvider(item.id);
                   setIntegrationId("");
                   setDisplayName(item.name);
@@ -140,6 +149,7 @@ function Config() {
                   setCredential4("");
                   setCredential5("");
                   setCredential6("");
+                  setEfiWebhookHmac("");
                 }
               }}
               className={"rounded-lg border p-3 text-left " + (provider === item.id ? "border-primary bg-muted" : "")}
@@ -156,7 +166,7 @@ function Config() {
       <section className="space-y-4 rounded-xl border bg-card p-5">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 className="font-bold">Integração {provider === "ASAAS" ? "Asaas" : provider === "INTER" ? "Banco Inter" : "PicPay"}</h2>
+            <h2 className="font-bold">Integração {provider === "ASAAS" ? "Asaas" : provider === "INTER" ? "Banco Inter" : provider === "EFI" ? "Efí Bank" : "PicPay"}</h2>
             <p className="text-xs text-muted-foreground">
               {isEditing
                 ? "Editando a integração. As credenciais atuais nunca são exibidas."
@@ -203,7 +213,7 @@ function Config() {
           value={credential1}
           onChange={setCredential1}
           visible={showSecrets}
-          placeholder={isEditing ? "Deixe vazio para manter o atual" : provider === "ASAAS" ? "API Key do Asaas" : "Client ID do Banco Inter"}
+          placeholder={isEditing ? "Deixe vazio para manter o atual" : provider === "ASAAS" ? "API Key do Asaas" : provider === "EFI" ? "Client ID da aplicação Efí" : "Client ID do Banco Inter"}
         />
 
         <SecretField
@@ -211,7 +221,7 @@ function Config() {
           value={credential2}
           onChange={setCredential2}
           visible={showSecrets}
-          placeholder={isEditing ? "Deixe vazio para manter o atual" : provider === "ASAAS" ? "Token do webhook Asaas" : "Client Secret do Banco Inter"}
+          placeholder={isEditing ? "Deixe vazio para manter o atual" : provider === "ASAAS" ? "Token do webhook Asaas" : provider === "EFI" ? "Client Secret da aplicação Efí" : "Client Secret do Banco Inter"}
         />
 
         {provider === "PICPAY" && (
@@ -230,6 +240,34 @@ function Config() {
             <SecretField label="Chave privada mTLS (.key/PEM)" value={credential4} onChange={setCredential4} visible={showSecrets} placeholder={isEditing ? "Deixe vazio para manter o atual" : "Cole o conteúdo PEM da chave privada"} />
             <SecretField label="Chave Pix" value={credential5} onChange={setCredential5} visible={showSecrets} placeholder={isEditing ? "Deixe vazio para manter o atual" : "Chave Pix da conta Inter"} />
             <SecretField label="Conta corrente (opcional)" value={credential6} onChange={setCredential6} visible={showSecrets} placeholder="Somente se a integração enxergar mais de uma conta" />
+          </>
+        )}
+
+        {provider === "EFI" && (
+          <>
+            <CertificateField
+              label="Certificado Efí (.p12)"
+              currentValue={credential3}
+              onValueChange={setCredential3}
+              disabled={mutation.isPending}
+            />
+            <SecretField
+              label="Senha do certificado (opcional)"
+              value={credential4}
+              onChange={setCredential4}
+              visible={showSecrets}
+              placeholder={isEditing ? "Deixe vazio para manter a atual" : "Senha do arquivo P12, se houver"}
+            />
+            <SecretField
+              label="Chave Pix"
+              value={credential5}
+              onChange={setCredential5}
+              visible={showSecrets}
+              placeholder={isEditing ? "Deixe vazio para manter a atual" : "Chave Pix da conta Efí"}
+            />
+            <p className="text-xs text-muted-foreground">
+              O certificado P12 é convertido para Base64 no navegador e gravado somente no Vault. A senha nunca é exibida após o cadastro.
+            </p>
           </>
         )}
 
@@ -265,6 +303,44 @@ function Config() {
         </p>
       </section>
     </div>
+  );
+}
+
+function CertificateField({
+  label,
+  currentValue,
+  onValueChange,
+  disabled,
+}: {
+  label: string;
+  currentValue: string;
+  onValueChange: (value: string) => void;
+  disabled: boolean;
+}) {
+  return (
+    <label className="block space-y-1 text-sm">
+      <span className="font-medium">{label}</span>
+      <input
+        type="file"
+        accept=".p12,.pfx,application/x-pkcs12"
+        disabled={disabled}
+        className="w-full rounded-lg border bg-background px-3 py-2 text-sm"
+        onChange={async (event) => {
+          const file = event.target.files?.[0];
+          if (!file) return;
+          const bytes = new Uint8Array(await file.arrayBuffer());
+          let binary = "";
+          const chunkSize = 0x8000;
+          for (let i = 0; i < bytes.length; i += chunkSize) {
+            binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+          }
+          onValueChange(btoa(binary));
+        }}
+      />
+      <span className="text-xs text-muted-foreground">
+        {currentValue ? "Certificado carregado e pronto para salvar." : "Selecione o certificado P12/PFX baixado da Efí."}
+      </span>
+    </label>
   );
 }
 
