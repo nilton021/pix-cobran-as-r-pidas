@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ComoFuncionaRouteImport } from './routes/como-funciona'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
 import { Route as AuthenticatedCobrancasIdRouteImport } from './routes/_authenticated/cobrancas.$id'
@@ -28,6 +29,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ComoFuncionaRoute = ComoFuncionaRouteImport.update({
+  id: '/como-funciona',
+  path: '/como-funciona',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
@@ -83,6 +89,7 @@ const ApiV1ChargesIdRoute = ApiV1ChargesIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/login': typeof LoginRoute
+  '/como-funciona': typeof ComoFuncionaRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/cobrancas/$id': typeof AuthenticatedCobrancasIdRoute
   '/contas/$id': typeof AuthenticatedContasIdRoute
@@ -94,6 +101,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
+  '/como-funciona': typeof ComoFuncionaRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/': typeof AuthenticatedIndexRoute
   '/cobrancas/$id': typeof AuthenticatedCobrancasIdRoute
@@ -108,6 +116,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/login': typeof LoginRoute
+  '/como-funciona': typeof ComoFuncionaRoute
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/cobrancas/$id': typeof AuthenticatedCobrancasIdRoute
@@ -123,6 +132,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/como-funciona'
     | '/configuracoes'
     | '/cobrancas/$id'
     | '/contas/$id'
@@ -134,6 +144,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
+    | '/como-funciona'
     | '/configuracoes'
     | '/'
     | '/cobrancas/$id'
@@ -161,6 +172,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   LoginRoute: typeof LoginRoute
+  ComoFuncionaRoute: typeof ComoFuncionaRoute
   ApiPublicPicpayWebhookRoute: typeof ApiPublicPicpayWebhookRoute
   ApiPublicReconcileChargesRoute: typeof ApiPublicReconcileChargesRoute
   ApiV1ChargesRoute: typeof ApiV1ChargesRouteWithChildren
@@ -180,6 +192,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/como-funciona': {
+      id: '/como-funciona'
+      path: '/como-funciona'
+      fullPath: '/como-funciona'
+      preLoaderRoute: typeof ComoFuncionaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/': {
@@ -282,6 +301,7 @@ const ApiV1ChargesRouteWithChildren = ApiV1ChargesRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   LoginRoute: LoginRoute,
+  ComoFuncionaRoute: ComoFuncionaRoute,
   ApiPublicPicpayWebhookRoute: ApiPublicPicpayWebhookRoute,
   ApiPublicReconcileChargesRoute: ApiPublicReconcileChargesRoute,
   ApiV1ChargesRoute: ApiV1ChargesRouteWithChildren,
