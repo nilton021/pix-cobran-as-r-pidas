@@ -23,7 +23,7 @@ export async function recordApiAudit(
     method: string;
     statusCode: number;
     eventType?: string;
-    metadata?: Record<string, unknown>;
+    metadata?: Json;
   },
 ): Promise<void> {
   const { error } = await supabaseAdmin.from("api_audit_events").insert({
@@ -35,7 +35,7 @@ export async function recordApiAudit(
     status_code: input.statusCode,
     duration_ms: Math.max(0, Date.now() - context.startedAt),
     event_type: input.eventType ?? "api_request",
-    metadata: (input.metadata ?? {}) as unknown as Json,
+    metadata: input.metadata ?? {},
   });
 
   if (error) console.error("[api-audit] falha ao registrar evento", error.message);
