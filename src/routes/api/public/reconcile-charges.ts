@@ -13,8 +13,9 @@ export const Route = createFileRoute("/api/public/reconcile-charges")({
 
         const cutoff = new Date(Date.now() - 60_000).toISOString();
         const { data: rows } = await supabaseAdmin.from("charges")
-          .select("id, payment_integration_id, expires_at").eq("status", "PENDING").not("payment_integration_id", "is", null).lt("created_at", cutoff)
-          .order("created_at", { ascending: true }).limit(15);
+          .select("id, payment_integration_id, expires_at, payment_integrations!inner(provider)").eq("status", "PENDING").not("payment_integration_id", "is", null)
+          .eq("payment_integrations.provider", "PICPAY").lt("created_at", cutoff)
+          .order("updated_at", { ascending: true }).limit(15);
 
         let ok = 0, failed = 0;
         for (const r of rows ?? []) {
