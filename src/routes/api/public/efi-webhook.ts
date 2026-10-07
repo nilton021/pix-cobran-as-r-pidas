@@ -23,7 +23,7 @@ export const Route = createFileRoute("/api/public/efi-webhook")({
         const { data: charge } = await supabaseAdmin
           .from("charges")
           .select("id, payment_integration_id, amount_cents, status")
-          .eq("provider_charge_id", txid)
+          .eq("provider_charge_id" as any, txid)
           .limit(1)
           .maybeSingle();
 
@@ -75,12 +75,12 @@ export const Route = createFileRoute("/api/public/efi-webhook")({
         }
 
         const update: Record<string, unknown> = { status, last_error: null };
-        if (status === "PAID") update.paid_at = new Date().toISOString();
-        if (endToEndId) update.end_to_end_id = endToEndId;
+        if (status === "PAID") update["paid_at"] = new Date().toISOString();
+        if (endToEndId) update["end_to_end_id"] = endToEndId;
 
         await supabaseAdmin
           .from("charges")
-          .update(update)
+          .update(update as any)
           .eq("id", charge.id)
           .neq("status", "PAID");
 

@@ -11,8 +11,8 @@ export const Route = createFileRoute("/api/public/picpay-webhook")({
         let payload: Json;
         try { payload = (await request.json()) as Json; } catch { return new Response("Bad Request", { status: 400 }); }
         const payloadObject = payload && typeof payload === "object" && !Array.isArray(payload) ? payload : null;
-        const data = payloadObject?.data && typeof payloadObject.data === "object" && !Array.isArray(payloadObject.data) ? payloadObject.data : null;
-        const merchantChargeId = typeof data?.merchantChargeId === "string" ? data.merchantChargeId : undefined;
+        const data = payloadObject?.["data"] && typeof payloadObject["data"] === "object" && !Array.isArray(payloadObject["data"]) ? payloadObject["data"] : null;
+        const merchantChargeId = typeof data?.["merchantChargeId"] === "string" ? data["merchantChargeId"] : undefined;
         if (!merchantChargeId || !/^[0-9a-f-]{36}$/.test(merchantChargeId)) return new Response("Bad Request", { status: 400 });
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { data: charge } = await supabaseAdmin.from("charges").select("id, payment_integration_id").eq("id", merchantChargeId).maybeSingle();
@@ -23,8 +23,8 @@ export const Route = createFileRoute("/api/public/picpay-webhook")({
         if (!raw || !safeEqual(raw, expected)) return new Response("Unauthorized", { status: 401 });
         const payloadHash = createHash("sha256").update(JSON.stringify(payload), "utf8").digest("hex");
         await supabaseAdmin.from("webhook_events").insert({
-          event_id: typeof payload?.id === "string" ? payload.id : null,
-          status: typeof data?.status === "string" ? data.status : null,
+          event_id: typeof payloadObject?.["id"] === "string" ? payloadObject["id"] : null,
+          status: typeof data?.["status"] === "string" ? data["status"] : null,
           merchant_charge_id: merchantChargeId,
           payload_hash: payloadHash,
         });

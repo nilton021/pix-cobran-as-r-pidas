@@ -100,7 +100,7 @@ export const Route = createFileRoute("/api/v1/charges")({
             );
           }
 
-          const integrationId = integrations[0].id;
+          const integrationId = integrations[0]!.id;
           const { data: charge, error: insertError } = await supabaseAdmin
             .from("charges")
             .insert({
@@ -115,8 +115,8 @@ export const Route = createFileRoute("/api/v1/charges")({
 
           if (insertError || !charge) throw new Error("Não foi possível criar a cobrança");
 
+          const { createPixCharge, PicPayError } = await import("@/lib/picpay.server");
           try {
-            const { createPixCharge, PicPayError } = await import("@/lib/picpay.server");
             const res = await createPixCharge(integrationId, {
               merchantChargeId: charge.id,
               customer: {
