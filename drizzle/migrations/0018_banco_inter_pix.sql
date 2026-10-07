@@ -78,13 +78,13 @@ begin
     if v_secret_id is null then perform vault.create_secret(p_key_pem,v_name,'Banco Inter chave privada mTLS');
     else perform vault.update_secret(v_secret_id,p_key_pem); end if;
   end if;
-  if nullif(trim(coalesce(p_pix_key,'')) is not null then
+  if nullif(trim(coalesce(p_pix_key,'')),'') is not null then
     v_name:='pix_'||v_id::text||'_inter_pix_key';
     select id into v_secret_id from vault.secrets where name=v_name limit 1;
     if v_secret_id is null then perform vault.create_secret(trim(p_pix_key),v_name,'Banco Inter chave Pix');
     else perform vault.update_secret(v_secret_id,trim(p_pix_key)); end if;
   end if;
-  if nullif(trim(coalesce(p_account_number,'')) is not null then
+  if nullif(trim(coalesce(p_account_number,'')),'') is not null then
     v_name:='pix_'||v_id::text||'_inter_account_number';
     select id into v_secret_id from vault.secrets where name=v_name limit 1;
     if v_secret_id is null then perform vault.create_secret(trim(p_account_number),v_name,'Banco Inter conta corrente');
