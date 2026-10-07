@@ -59,6 +59,42 @@ jobs:
             \i drizzle/migrations/0011_api_audit_events.sql
           \endif
 
+          select exists (
+            select 1 from information_schema.columns
+            where table_schema = 'public'
+              and table_name = 'webhook_events'
+              and column_name = 'payload_hash'
+          ) as migration_0012_done \gset
+          \if :migration_0012_done
+            \echo '0012 já aplicada; validando retenção'
+          \else
+            \echo 'Aplicando 0012'
+            \i drizzle/migrations/0012_webhook_data_minimization.sql
+          \endif
+
+          select to_regclass('public.profiles') is not null as migration_0013_done \gset
+          \if :migration_0013_done
+            \echo '0013 já aplicada; validando profiles'
+          \else
+            \echo 'Aplicando 0013'
+            \i drizzle/migrations/0013_auth_onboarding.sql
+          \endif
+
+          select exists (
+            select 1
+            from pg_proc p
+            join pg_namespace n on n.oid = p.pronamespace
+            where n.nspname = 'public'
+              and p.proname = 'handle_new_user_profile'
+              and p.prosecdef
+          ) as migration_0015_done \gset
+          \if :migration_0015_done
+            \echo '0015 já aplicada; validando trigger de perfil'
+          \else
+            \echo 'Aplicando 0015'
+            \i drizzle/migrations/0015_fix_auth_profile_trigger.sql
+          \endif
+
           \echo 'Aplicando/validando 0014'
           \i drizzle/migrations/0014_charge_integration_backfill.sql
 
