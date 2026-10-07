@@ -89,7 +89,7 @@ export const createCharge = createServerFn({ method: "POST" })
           };
 
       const { data: updated, error: upErr } = await supabaseAdmin
-        .from("charges").update(update).eq("id", charge.id).select().single();
+        .from("charges").update(update as any).eq("id", charge.id).select().single();
       if (upErr) throw upErr;
       return updated;
     } catch (e) {
