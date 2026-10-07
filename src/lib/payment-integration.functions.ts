@@ -53,7 +53,7 @@ export const savePaymentIntegration = createServerFn({ method: "POST" })
       return { integrationId: id };
     }
 
-    const { data: id, error: rpcError } = await context.supabase.rpc("save_asaas_integration", {
+    const { data: id, error: rpcError } = await (context.supabase as any).rpc("save_asaas_integration", {
       p_account_id: account.id,
       p_integration_id: data.integrationId ?? null,
       p_display_name: data.displayName,
