@@ -137,6 +137,9 @@ function Config() {
                   setCredential1("");
                   setCredential2("");
                   setCredential3("");
+                  setCredential4("");
+                  setCredential5("");
+                  setCredential6("");
                 }
               }}
               className={"rounded-lg border p-3 text-left " + (provider === item.id ? "border-primary bg-muted" : "")}
