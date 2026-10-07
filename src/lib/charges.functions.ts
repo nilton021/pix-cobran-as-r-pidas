@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { TablesUpdate } from "@/integrations/supabase/types";
 
 const createSchema = z.object({
   accountId: z.string().uuid(),
@@ -51,7 +52,7 @@ export const createCharge = createServerFn({ method: "POST" })
     if (insErr || !charge) throw new Error("Não foi possível criar a cobrança");
 
     try {
-      const result: any = provider === "ASAAS"
+      const result = provider === "ASAAS"
         ? await asaas!.createPixCharge(paymentIntegrationId, {
             externalReference: charge.id, name: account.name, email: account.email,
             document: account.document, amountCents: data.amountCents,
@@ -84,7 +85,7 @@ export const createCharge = createServerFn({ method: "POST" })
         : provider === "INTER" || provider === "EFI"
           ? result.txid
           : result.id;
-      const update = provider === "ASAAS"
+      const update: TablesUpdate<"charges"> = provider === "ASAAS"
         ? {
             provider_charge_id: remoteId ?? null,
             picpay_charge_id: null,
@@ -109,7 +110,7 @@ export const createCharge = createServerFn({ method: "POST" })
           };
 
       const { data: updated, error: upErr } = await supabaseAdmin
-        .from("charges").update(update as any).eq("id", charge.id).select().single();
+        .from("charges").update(update).eq("id", charge.id).select().single();
       if (upErr) throw upErr;
       return updated;
     } catch (e) {

@@ -115,8 +115,8 @@ export const Route = createFileRoute("/api/v1/charges")({
 
           if (insertError || !charge) throw new Error("Não foi possível criar a cobrança");
 
-          const { createPixCharge, PicPayError } = await import("@/lib/picpay.server");
           try {
+            const { createPixCharge, PicPayError } = await import("@/lib/picpay.server");
             const res = await createPixCharge(integrationId, {
               merchantChargeId: charge.id,
               customer: {

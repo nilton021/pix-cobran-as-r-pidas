@@ -43,7 +43,7 @@ export const savePaymentIntegration = createServerFn({ method: "POST" })
     if (error || !account) throw new Error("Conta não encontrada");
 
     if (data.provider === "PICPAY") {
-      const { data: id, error: rpcError } = await (context.supabase as any).rpc("save_picpay_integration", {
+      const { data: id, error: rpcError } = await context.supabase.rpc("save_picpay_integration", {
         p_account_id: account.id,
         p_integration_id: data.integrationId ?? null,
         p_display_name: data.displayName,
@@ -57,7 +57,7 @@ export const savePaymentIntegration = createServerFn({ method: "POST" })
     }
 
     if (data.provider === "INTER") {
-      const { data: id, error: rpcError } = await (context.supabase as any).rpc("save_inter_integration", {
+      const { data: id, error: rpcError } = await context.supabase.rpc("save_inter_integration", {
         p_account_id: account.id,
         p_integration_id: data.integrationId ?? null,
         p_display_name: data.displayName,
@@ -74,7 +74,7 @@ export const savePaymentIntegration = createServerFn({ method: "POST" })
     }
 
     if (data.provider === "EFI") {
-      const { data: result, error: rpcError } = await (context.supabase as any).rpc("save_efi_integration", {
+      const { data: result, error: rpcError } = await context.supabase.rpc("save_efi_integration", {
         p_account_id: account.id,
         p_integration_id: data.integrationId ?? null,
         p_display_name: data.displayName,
@@ -87,10 +87,10 @@ export const savePaymentIntegration = createServerFn({ method: "POST" })
       });
       const row = result?.[0];
       if (rpcError || !row?.integration_id) throw new Error(rpcError?.message || "Não foi possível salvar o Efí Bank");
-      return { integrationId: row.integration_id, webhookHmac: row.webhook_hmac as string };
+      return { integrationId: row.integration_id, webhookHmac: row.webhook_hmac };
     }
 
-    const { data: id, error: rpcError } = await (context.supabase as any).rpc("save_asaas_integration", {
+    const { data: id, error: rpcError } = await context.supabase.rpc("save_asaas_integration", {
       p_account_id: account.id,
       p_integration_id: data.integrationId ?? null,
       p_display_name: data.displayName,

@@ -10,7 +10,7 @@ const cache=new Map<string,Token>();
 const pending=new Map<string,Promise<string>>();
 
 async function config(id:string):Promise<InterConfig>{
-  const {data,error}=await (supabaseAdmin as any).rpc("get_inter_integration_credentials",{p_integration_id:id});
+  const {data,error}=await supabaseAdmin.rpc("get_inter_integration_credentials",{p_integration_id:id});
   const c=data?.[0] as InterConfig|undefined;
   if(error||!c?.client_id||!c.client_secret||!c.cert_pem||!c.key_pem||!c.pix_key)
     throw new Error("Integração Banco Inter não configurada");

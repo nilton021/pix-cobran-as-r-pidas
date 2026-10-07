@@ -10,7 +10,7 @@ describe("phase 20 PicPay homologation E2E contracts", () => {
   it("keeps the create-charge flow bound to the linked PicPay integration", () => {
     const route = readRepoFile("src/routes/api/v1/charges.ts");
     const picpay = readRepoFile("src/lib/picpay.server.ts");
-    expect(route).toContain("const integrationId = integrations[0].id;");
+    expect(route).toContain("const integrationId = integrations[0]!.id;");
     expect(route).toContain("payment_integration_id: integrationId");
     expect(route).toContain("merchantChargeId: charge.id");
     expect(route).toContain("await createPixCharge(integrationId");
@@ -33,7 +33,7 @@ describe("phase 20 PicPay homologation E2E contracts", () => {
     expect(picpay).toContain('if (tx?.paymentType !== "PIX") throw new Error("Confirmação PAID não é PIX");');
     expect(picpay).toContain('if (tx.amount !== current.amount_cents) throw new Error("Valor pago divergente da cobrança");');
     expect(picpay).toContain("tx?.updatedAt");
-    expect(picpay).toContain("update.paid_at");
+    expect(picpay).toContain('update["paid_at"]');
   });
 
   it("authenticates the webhook before provider confirmation", () => {

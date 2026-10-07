@@ -4,10 +4,12 @@ type Payment = { id: string; status?: string; externalReference?: string };
 type PixCode = { encodedImage?: string; payload?: string; expirationDate?: string };
 
 async function getConfig(id: string) {
-  const result = await (supabaseAdmin as any).rpc("get_asaas_integration_credentials", { p_integration_id: id });
-  const row = result.data?.[0];
-  if (result.error || !row) throw new Error("Integração Asaas não configurada");
-  return row as { environment: string; api_key: string; webhook_secret?: string };
+  const { data, error } = await supabaseAdmin.rpc("get_asaas_integration_credentials", {
+    p_integration_id: id,
+  });
+  const row = data?.[0];
+  if (error || !row) throw new Error("Integração Asaas não configurada");
+  return row;
 }
 
 function origin(environment: string) {
