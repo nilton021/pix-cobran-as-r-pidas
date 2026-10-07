@@ -19,7 +19,7 @@ export const Route = createFileRoute("/api/public/picpay-webhook")({
         if (!charge?.payment_integration_id) return new Response("Unauthorized", { status: 401 });
         let expected: string;
         try { expected = await getPicPayWebhookSecret(charge.payment_integration_id); } catch { return new Response("Unauthorized", { status: 401 }); }
-        const raw = (request.headers.get("authorization") ?? "").replace(/^Bearer\\s+/i, "").trim();
+        const raw = (request.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "").trim();
         if (!raw || !safeEqual(raw, expected)) return new Response("Unauthorized", { status: 401 });
         const payloadHash = createHash("sha256").update(JSON.stringify(payload), "utf8").digest("hex");
         await supabaseAdmin.from("webhook_events").insert({
