@@ -59,7 +59,7 @@ function Conta() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const p = form.safeParse({ amountCents: money.cents, description: desc || undefined });
-    if (!p.success) return toast.error(p.error.issues[0].message);
+    if (!p.success) { toast.error(p.error.issues[0]?.message ?? "Dados inválidos"); return; }
     setLoading(true);
     try {
       const c = await create({ data: { accountId: id, ...p.data, expirationSeconds: Number(exp) } });

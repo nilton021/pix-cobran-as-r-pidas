@@ -33,8 +33,9 @@ export const createCharge = createServerFn({ method: "POST" })
       );
     }
 
-    const paymentIntegrationId = integrations[0].id;
-    const provider = integrations[0].provider;
+    const integration = integrations[0]!;
+    const paymentIntegrationId = integration.id;
+    const provider = integration.provider;
     const picpay = provider === "PICPAY" ? await import("./picpay.server") : null;
     const asaas = provider === "ASAAS" ? await import("./asaas.server") : null;
     const inter = provider === "INTER" ? await import("./inter.server") : null;

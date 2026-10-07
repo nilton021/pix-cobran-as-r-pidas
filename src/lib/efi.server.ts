@@ -45,9 +45,9 @@ function request(
   opts: {
     method?: string;
     headers?: Record<string, string>;
-    body?: string;
+    body?: string | undefined;
     certificate: string;
-    password?: string;
+    password?: string | undefined;
   },
 ): Promise<{ status: number; body: string }> {
   return new Promise((resolve, reject) => {
@@ -145,7 +145,7 @@ async function call(id: string, path: string, method = "GET", body?: unknown) {
 
 export async function createPixCharge(
   id: string,
-  input: { amountCents: number; description?: string; expirationSeconds: number; externalReference: string },
+  input: { amountCents: number; description?: string | undefined; expirationSeconds: number; externalReference: string },
 ) {
   const txid = input.externalReference.replace(/-/g, "").replace(/[^a-zA-Z0-9]/g, "").slice(0, 35).padEnd(26, "0");
   const result = (await call(id, "/v2/cob/" + txid, "PUT", {

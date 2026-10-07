@@ -49,5 +49,5 @@ export function isValidCNPJ(cnpj: string): boolean {
 export function payerName(payer: unknown): string | null {
   if (!payer || typeof payer !== "object") return null;
   const p = payer as Record<string, unknown>;
-  return (typeof p.name === "string" && p.name) || null;
+  return (typeof p["name"] === "string" && p["name"]) || null;
 }
