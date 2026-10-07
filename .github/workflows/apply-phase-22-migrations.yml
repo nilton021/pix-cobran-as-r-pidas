@@ -101,6 +101,18 @@ jobs:
             \i drizzle/migrations/0018_banco_inter_pix.sql
           \endif
 
+          select exists (
+            select 1 from pg_proc p
+            join pg_namespace n on n.oid = p.pronamespace
+            where n.nspname = 'public' and p.proname = 'save_efi_integration'
+          ) as migration_0019_done \gset
+          \if :migration_0019_done
+            \echo '0019 já aplicada; validando Efí Bank'
+          \else
+            \echo 'Aplicando 0019'
+            \i drizzle/migrations/0019_efi_pix.sql
+          \endif
+
           commit;
 
           select
