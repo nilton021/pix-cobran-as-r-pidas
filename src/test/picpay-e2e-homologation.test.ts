@@ -75,7 +75,8 @@ describe("phase 20 PicPay homologation E2E contracts", () => {
       expect(source).toContain('.neq("status", "PAID")');
       expect(source).toContain('Payment amount mismatch');
     }
-    expect(asaas).toContain("remote.value === undefined || remote.value === null");
+    expect(asaas).toContain("remote.value === undefined ||");
+    expect(asaas).toContain("remote.value === null ||");
   });
 
 });
