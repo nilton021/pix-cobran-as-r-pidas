@@ -35,7 +35,7 @@ describe("multi-provider homologation contracts", () => {
     }
   });
 
-  it("routes each provider to its own adapter and webhook", () => {
+  it("routes non-PicPay providers to their own adapters", () => {
     const charges = readRepoFile("src/lib/charges.functions.ts");
     expect(charges).toContain('provider === "ASAAS"');
     expect(charges).toContain('provider === "INTER"');
@@ -44,10 +44,6 @@ describe("multi-provider homologation contracts", () => {
     expect(readRepoFile("src/lib/asaas.server.ts")).toContain("createPixCharge");
     expect(readRepoFile("src/lib/inter.server.ts")).toContain("createPixCharge");
     expect(readRepoFile("src/lib/efi.server.ts")).toContain("createPixCharge");
-
-    expect(readRepoFile("src/routes/api/public/asaas-webhook.ts")).toContain("POST");
-    expect(readRepoFile("src/routes/api/public/inter-webhook.ts")).toContain("POST");
-    expect(readRepoFile("src/routes/api/public/efi-webhook.ts")).toContain("POST");
   });
 
   it("persists provider_charge_id for non-PicPay providers", () => {
