@@ -22,7 +22,7 @@ export const createCharge = createServerFn({ method: "POST" })
       .from("payment_integrations")
       .select("id, provider")
       .eq("account_id", account.id)
-      .in("provider", ["PICPAY", "ASAAS"])
+      .in("provider", ["PICPAY", "ASAAS", "INTER"])
       .eq("status", "ACTIVE");
 
     if (integrationErr || !integrations || integrations.length !== 1) {
@@ -37,6 +37,7 @@ export const createCharge = createServerFn({ method: "POST" })
     const provider = integrations[0].provider;
     const picpay = provider === "PICPAY" ? await import("./picpay.server") : null;
     const asaas = provider === "ASAAS" ? await import("./asaas.server") : null;
+    const inter = provider === "INTER" ? await import("./inter.server") : null;
 
     const { data: charge, error: insErr } = await supabaseAdmin.from("charges").insert({
       account_id: account.id,
@@ -50,28 +51,24 @@ export const createCharge = createServerFn({ method: "POST" })
     try {
       const result = provider === "ASAAS"
         ? await asaas!.createPixCharge(paymentIntegrationId, {
-            externalReference: charge.id,
-            name: account.name,
-            email: account.email,
-            document: account.document,
-            amountCents: data.amountCents,
-            description: data.description,
-            expirationSeconds: data.expirationSeconds,
+            externalReference: charge.id, name: account.name, email: account.email,
+            document: account.document, amountCents: data.amountCents,
+            description: data.description, expirationSeconds: data.expirationSeconds,
           })
-        : await picpay!.createPixCharge(paymentIntegrationId, {
-            merchantChargeId: charge.id,
-            customer: {
-              name: account.name,
-              email: account.email,
-              documentType: account.document_type as "CPF" | "CNPJ",
-              document: account.document,
-            },
-            amountCents: data.amountCents,
-            expirationSeconds: data.expirationSeconds,
-          });
+        : provider === "INTER"
+          ? await inter!.createPixCharge(paymentIntegrationId, {
+              externalReference: charge.id, amountCents: data.amountCents,
+              description: data.description, expirationSeconds: data.expirationSeconds,
+            })
+          : await picpay!.createPixCharge(paymentIntegrationId, {
+              merchantChargeId: charge.id,
+              customer: { name: account.name, email: account.email,
+                documentType: account.document_type as "CPF" | "CNPJ", document: account.document },
+              amountCents: data.amountCents, expirationSeconds: data.expirationSeconds,
+            });
 
-      const pix = provider === "ASAAS" ? result.pix : result.transactions?.[0]?.pix;
-      const remoteId = provider === "ASAAS" ? result.paymentId : result.id;
+      const pix = provider === "ASAAS" ? result.pix : provider === "INTER" ? { payload: result.pixCopiaECola } : result.transactions?.[0]?.pix;
+      const remoteId = provider === "ASAAS" ? result.paymentId : provider === "INTER" ? result.txid : result.id;
       const update = provider === "ASAAS"
         ? {
             provider_charge_id: remoteId ?? null,
@@ -80,7 +77,15 @@ export const createCharge = createServerFn({ method: "POST" })
             qr_code_base64: pix?.encodedImage ?? null,
             expires_at: pix?.expirationDate ?? new Date(Date.now() + data.expirationSeconds * 1000).toISOString(),
           }
-        : {
+        : provider === "INTER"
+          ? {
+              provider_charge_id: remoteId ?? null,
+              picpay_charge_id: null,
+              qr_code: pix?.payload ?? null,
+              qr_code_base64: null,
+              expires_at: new Date(Date.now() + data.expirationSeconds * 1000).toISOString(),
+            }
+          : {
             provider_charge_id: remoteId ?? null,
             picpay_charge_id: remoteId ?? null,
             qr_code: pix?.qrCode ?? null,
@@ -117,6 +122,18 @@ export const syncCharge = createServerFn({ method: "POST" })
       .select("provider")
       .eq("id", owned.payment_integration_id)
       .maybeSingle();
+
+    if (integration?.provider === "INTER") {
+      const { getCharge, statusToLocal } = await import("./inter.server");
+      if (!owned.provider_charge_id) throw new Error("Cobrança Inter sem txid");
+      const remote = await getCharge(owned.payment_integration_id, owned.provider_charge_id) as { status?: string };
+      const status = statusToLocal(remote.status);
+      const { data: updated, error } = await supabaseAdmin.from("charges").update({
+        status, paid_at: status === "PAID" ? new Date().toISOString() : null, last_error: null,
+      }).eq("id", data.chargeId).select().single();
+      if (error) throw error;
+      return updated;
+    }
 
     if (integration?.provider === "ASAAS") {
       const { getPayment, statusToLocal } = await import("./asaas.server");
