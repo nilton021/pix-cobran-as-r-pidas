@@ -61,7 +61,7 @@ export const Route = createFileRoute("/api/public/efi-webhook")({
 
         const status = statusToLocal(remote?.status);
         const paidValue = remote?.valor?.original ? Number(remote.valor.original) * 100 : null;
-        if (status === "PAID" && paidValue !== null && Math.round(paidValue) !== charge.amount_cents) {
+        if (status === "PAID" && (paidValue === null || !Number.isFinite(paidValue) || Math.round(paidValue) !== charge.amount_cents)) {
           return new Response("Payment amount mismatch", { status: 409 });
         }
 

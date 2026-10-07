@@ -60,4 +60,23 @@ describe("phase 20 PicPay homologation E2E contracts", () => {
     expect(picpay).toContain("${base}/oauth2/token");
     expect(picpay).toContain("tokenCache.set(integrationId");
   });
+  it("prevents non-PicPay providers from accepting PAID without exact value", () => {
+    const source = readRepoFile("src/lib/charges.functions.ts");
+    expect(source).toContain('Math.round(Number(paidValue) * 100) !== owned.amount_cents');
+    expect(source).toContain('Math.round(remote.value * 100) !== owned.amount_cents');
+    expect(source).toContain('.neq("status", "PAID")');
+  });
+
+  it("prevents provider webhooks from regressing a PAID charge", () => {
+    const asaas = readRepoFile("src/routes/api/public/asaas-webhook.ts");
+    const inter = readRepoFile("src/routes/api/public/inter-webhook.ts");
+    const efi = readRepoFile("src/routes/api/public/efi-webhook.ts");
+    for (const source of [asaas, inter, efi]) {
+      expect(source).toContain('.neq("status", "PAID")');
+      expect(source).toContain('Payment amount mismatch');
+    }
+    expect(asaas).toContain("remote.value === undefined ||");
+    expect(asaas).toContain("remote.value === null ||");
+  });
+
 });

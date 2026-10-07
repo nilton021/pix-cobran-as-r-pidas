@@ -31,7 +31,7 @@ export const Route = createFileRoute("/api/public/asaas-webhook")({
         );
         const { data: candidates } = await supabaseAdmin
           .from("charges")
-          .select("id, payment_integration_id")
+          .select("id, payment_integration_id, amount_cents, status, paid_at")
           .eq("provider_charge_id", remoteId)
           .limit(1);
         const charge = candidates?.[0];
@@ -76,14 +76,20 @@ export const Route = createFileRoute("/api/public/asaas-webhook")({
             remoteId,
           );
           const status = statusToLocal(remote.status);
+          if (status === "PAID") {
+            if (remote.value === undefined || remote.value === null || Math.round(remote.value * 100) !== charge.amount_cents) {
+              return new Response("Payment amount mismatch", { status: 409 });
+            }
+          }
           await supabaseAdmin
             .from("charges")
             .update({
               status,
-              paid_at: status === "PAID" ? new Date().toISOString() : null,
+              paid_at: status === "PAID" ? (charge.paid_at ?? new Date().toISOString()) : charge.paid_at,
               last_error: null,
             })
-            .eq("id", charge.id);
+            .eq("id", charge.id)
+            .neq("status", "PAID");
         } catch (error) {
           console.error(
             "[asaas-webhook] falha ao sincronizar",
