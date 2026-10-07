@@ -5,7 +5,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 const input = z.object({
   accountId: z.string().uuid(),
   integrationId: z.string().uuid().optional(),
-  provider: z.enum(["PICPAY", "ASAAS", "INTER"]),
+  provider: z.enum(["PICPAY", "ASAAS", "INTER", "EFI"]),
   displayName: z.string().trim().min(1).max(80),
   environment: z.enum(["SANDBOX", "PRODUCTION"]),
   credential1: z.string().max(4000).optional().default(""),
@@ -71,6 +71,23 @@ export const savePaymentIntegration = createServerFn({ method: "POST" })
       });
       if (rpcError || !id) throw new Error(rpcError?.message || "Não foi possível salvar o Banco Inter");
       return { integrationId: id };
+    }
+
+    if (data.provider === "EFI") {
+      const { data: result, error: rpcError } = await (context.supabase as any).rpc("save_efi_integration", {
+        p_account_id: account.id,
+        p_integration_id: data.integrationId ?? null,
+        p_display_name: data.displayName,
+        p_environment: data.environment,
+        p_client_id: data.credential1 || null,
+        p_client_secret: data.credential2 || null,
+        p_certificate_base64: data.credential3 || null,
+        p_certificate_password: data.credential4 || null,
+        p_pix_key: data.credential5 || null,
+      });
+      const row = result?.[0];
+      if (rpcError || !row?.integration_id) throw new Error(rpcError?.message || "Não foi possível salvar o Efí Bank");
+      return { integrationId: row.integration_id, webhookHmac: row.webhook_hmac as string };
     }
 
     const { data: id, error: rpcError } = await (context.supabase as any).rpc("save_asaas_integration", {
