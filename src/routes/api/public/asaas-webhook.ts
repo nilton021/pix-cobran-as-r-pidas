@@ -15,11 +15,7 @@ export const Route = createFileRoute("/api/public/asaas-webhook")({
         if (!eventId || !event || !remoteId) return new Response("Bad Request", { status: 400 });
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        const { data: candidates } = await supabaseAdmin
-          .from("charges")
-          .select("id, payment_integration_id")
-          .eq("provider_charge_id", remoteId)
-          .limit(1);
+        const { data: candidates } = await supabaseAdmin.from("charges").select("id, payment_integration_id").eq("provider_charge_id", remoteId).limit(1);
         const charge = candidates?.[0];
         if (!charge?.payment_integration_id) return new Response("Unauthorized", { status: 401 });
 
