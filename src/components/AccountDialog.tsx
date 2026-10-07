@@ -30,7 +30,7 @@ export function AccountDialog({ open, onOpenChange, account }: { open: boolean; 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
     const parsed = schema.safeParse({ name, email, document: onlyDigits(doc) });
-    if (!parsed.success) return toast.error(parsed.error.issues[0].message);
+    if (!parsed.success) { toast.error(parsed.error.issues[0]?.message ?? "Dados inválidos"); return; }
     setSaving(true);
     const payload = { ...parsed.data, document_type: parsed.data.document.length === 11 ? "CPF" : "CNPJ" };
     const { data: u } = await supabase.auth.getUser();

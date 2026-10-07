@@ -169,15 +169,15 @@ export async function applyStatus(chargeId: string, remote: PicPayCharge, opts: 
   const update: Record<string, unknown> = { status: next };
   if (next === "PAID" && !current.paid_at) {
     const paidAt = tx?.updatedAt ? new Date(tx.updatedAt) : null;
-    update.paid_at = paidAt && !Number.isNaN(paidAt.getTime()) ? paidAt.toISOString() : new Date().toISOString();
+    update["paid_at"] = paidAt && !Number.isNaN(paidAt.getTime()) ? paidAt.toISOString() : new Date().toISOString();
   }
-  if (remote.id && !current.picpay_charge_id) update.picpay_charge_id = remote.id;
-  if (tx?.pix?.endToEndId) update.end_to_end_id = tx.pix.endToEndId;
-  if (tx?.pix?.payer) update.payer = tx.pix.payer;
+  if (remote.id && !current.picpay_charge_id) update["picpay_charge_id"] = remote.id;
+  if (tx?.pix?.endToEndId) update["end_to_end_id"] = tx.pix.endToEndId;
+  if (tx?.pix?.payer) update["payer"] = tx.pix.payer;
 
   const { data, error: upErr } = await supabaseAdmin
     .from("charges")
-    .update(update)
+    .update(update as any)
     .eq("id", chargeId)
     .neq("status", "PAID")
     .select()

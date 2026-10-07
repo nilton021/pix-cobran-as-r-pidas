@@ -32,7 +32,7 @@ async function readJson<T>(res: Response): Promise<T> {
 
 export async function createPixCharge(id: string, input: {
   externalReference: string; name: string; email: string; document: string;
-  amountCents: number; description?: string; expirationSeconds: number;
+  amountCents: number; description?: string | undefined; expirationSeconds: number;
 }) {
   const lookup = await readJson<{ data: Array<{ id: string }> }>(
     await call(id, "/v3/customers?email=" + encodeURIComponent(input.email))

@@ -10,7 +10,7 @@ const cache=new Map<string,Token>();
 const pending=new Map<string,Promise<string>>();
 
 async function config(id:string):Promise<InterConfig>{
-  const {data,error}=await supabaseAdmin.rpc("get_inter_integration_credentials",{p_integration_id:id});
+  const {data,error}=await (supabaseAdmin as any).rpc("get_inter_integration_credentials",{p_integration_id:id});
   const c=data?.[0] as InterConfig|undefined;
   if(error||!c?.client_id||!c.client_secret||!c.cert_pem||!c.key_pem||!c.pix_key)
     throw new Error("Integração Banco Inter não configurada");
@@ -18,7 +18,7 @@ async function config(id:string):Promise<InterConfig>{
 }
 function base(env:string){return env==="SANDBOX"?"https://cdpj-sandbox.partners.uatinter.co":"https://cdpj.partners.bancointer.com.br";}
 
-function request(url:string, opts:{method?:string;headers?:Record<string,string>;body?:string;cert:string;key:string}):Promise<{status:number;body:string}>{
+function request(url:string, opts:{method?:string;headers?:Record<string,string>;body?:string|undefined;cert:string;key:string}):Promise<{status:number;body:string}>{
   return new Promise((resolve,reject)=>{
     const u=new URL(url);
     const req=https.request(u,{method:opts.method??"GET",cert:opts.cert,key:opts.key,headers:opts.headers??{}},res=>{
@@ -46,12 +46,12 @@ async function call(id:string,path:string,method="GET",body?:unknown){
   if(body!==undefined) headers["Content-Type"]="application/json";
   if(c.account_number) headers["x-conta-corrente"]=c.account_number;
   const res=await request(base(c.environment)+path,{method,cert:c.cert_pem,key:c.key_pem,headers,body:body===undefined?undefined:JSON.stringify(body)});
-  if(res.status===401){cache.delete(id); const fresh=await token(id); headers.Authorization="Bearer "+fresh; return request(base(c.environment)+path,{method,cert:c.cert_pem,key:c.key_pem,headers,body:body===undefined?undefined:JSON.stringify(body)});}
+  if(res.status===401){cache.delete(id); const fresh=await token(id); headers["Authorization"]="Bearer "+fresh; return request(base(c.environment)+path,{method,cert:c.cert_pem,key:c.key_pem,headers,body:body===undefined?undefined:JSON.stringify(body)});}
   if(res.status<200||res.status>=300) throw new Error("Banco Inter respondeu "+res.status+": "+res.body.slice(0,300));
   return res.body?JSON.parse(res.body):{};
 }
 
-export async function createPixCharge(id:string,input:{amountCents:number;description?:string;expirationSeconds:number;externalReference:string}){
+export async function createPixCharge(id:string,input:{amountCents:number;description?:string|undefined;expirationSeconds:number;externalReference:string}){
   const c=await config(id);
   const txid=input.externalReference.replace(/-/g,"").slice(0,35).padEnd(26,"0");
   const body={

@@ -36,7 +36,7 @@ function Login() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const parsed = authSchema.safeParse({ fullName: mode === "in" ? "Usuário" : fullName, email, password });
-    if (!parsed.success) return toast.error(parsed.error.issues[0].message);
+    if (!parsed.success) { toast.error(parsed.error.issues[0]?.message ?? "Dados inválidos"); return; }
     setLoading(true);
     try {
       if (mode === "in") {
