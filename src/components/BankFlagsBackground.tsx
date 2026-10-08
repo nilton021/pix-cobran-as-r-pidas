@@ -101,8 +101,8 @@ export function BankFlagsBackground({ className }: { className?: string }) {
         const delay = -(i * 1.9);
         const rotate = -8 + (i % 4) * 5;
         const dx = (i % 2 === 0 ? 1 : -1) * (12 + (i % 4) * 6);
-        // a faixa do topo desce e a da base sobe: nenhuma bandeira invade o conteúdo
-        const dy = flag.band === "top" ? 14 + (i % 3) * 8 : -(14 + (i % 3) * 10);
+        // a faixa do topo desce pouco e a da base sobe: nenhuma bandeira invade o conteúdo
+        const dy = flag.band === "top" ? 8 + (i % 3) * 5 : -(14 + (i % 3) * 10);
         const spin = i % 2 === 0 ? 4 : -3;
 
         return (
