@@ -33,35 +33,35 @@ type Flag = {
 
 // Posições fixas (sem aleatoriedade) para renderizar igual no servidor e no navegador.
 const FLAGS: Flag[] = [
-  { id: "PICPAY", left: "6%", sm: 16, md: 48, depth: "near", band: "top" },
-  { id: "ITAU", left: "24%", sm: 40, md: 40, depth: "mid", band: "top", wideOnly: true },
-  { id: "NUBANK", left: "52%", sm: 20, md: 52, depth: "mid", band: "top", wideOnly: true },
-  { id: "SANTANDER", left: "47%", sm: 44, md: 56, depth: "far", band: "top", wideOnly: true },
-  { id: "BRADESCO", left: "80%", sm: 40, md: 44, depth: "far", band: "top", wideOnly: true },
-  { id: "MERCADOPAGO", left: "5%", sm: 16, md: 44, depth: "mid", band: "bottom", wideOnly: true },
-  { id: "INTER", left: "30%", sm: 16, md: 56, depth: "near", band: "bottom" },
-  { id: "EFI", left: "50%", sm: 16, md: 40, depth: "far", band: "bottom", wideOnly: true },
-  { id: "ASAAS", left: "72%", sm: 16, md: 48, depth: "mid", band: "bottom", wideOnly: true },
+  { id: "PICPAY", left: "6%", sm: 16, md: 26, depth: "near", band: "top" },
+  { id: "ITAU", left: "24%", sm: 40, md: 30, depth: "mid", band: "top", wideOnly: true },
+  { id: "NUBANK", left: "52%", sm: 20, md: 24, depth: "mid", band: "top", wideOnly: true },
+  { id: "SANTANDER", left: "40%", sm: 44, md: 28, depth: "far", band: "top", wideOnly: true },
+  { id: "BRADESCO", left: "78%", sm: 40, md: 26, depth: "far", band: "top", wideOnly: true },
+  { id: "MERCADOPAGO", left: "5%", sm: 16, md: 28, depth: "mid", band: "bottom", wideOnly: true },
+  { id: "INTER", left: "30%", sm: 16, md: 30, depth: "near", band: "bottom" },
+  { id: "EFI", left: "54%", sm: 16, md: 24, depth: "far", band: "bottom", wideOnly: true },
+  { id: "ASAAS", left: "72%", sm: 16, md: 26, depth: "mid", band: "bottom", wideOnly: true },
 ];
 
 /** Quadrados de marca espalhados: dão profundidade e funcionam em qualquer largura. */
 const TILES: { id: BankBrandId; style: CSSProperties; size: number; opacity: number; blur: number }[] = [
-  { id: "PICPAY", style: { left: "2%", top: "22%" }, size: 34, opacity: 0.22, blur: 1.5 },
-  { id: "NUBANK", style: { left: "12%", top: "70%" }, size: 26, opacity: 0.18, blur: 2 },
-  { id: "INTER", style: { left: "33%", top: "12%" }, size: 30, opacity: 0.2, blur: 1.6 },
-  { id: "SANTANDER", style: { left: "44%", top: "78%" }, size: 24, opacity: 0.18, blur: 2.2 },
-  { id: "MERCADOPAGO", style: { left: "58%", top: "16%" }, size: 20, opacity: 0.2, blur: 1.8 },
-  { id: "EFI", style: { left: "66%", top: "72%" }, size: 22, opacity: 0.18, blur: 1.8 },
-  { id: "ASAAS", style: { left: "78%", top: "26%" }, size: 28, opacity: 0.2, blur: 1.4 },
-  { id: "BRADESCO", style: { left: "90%", top: "64%" }, size: 26, opacity: 0.18, blur: 2 },
-  { id: "ITAU", style: { left: "6%", top: "46%" }, size: 18, opacity: 0.16, blur: 2.4 },
-  { id: "PICPAY", style: { right: "3%", top: "38%" }, size: 40, opacity: 0.16, blur: 2.6 },
-  { id: "INTER", style: { right: "8%", top: "84%" }, size: 18, opacity: 0.14, blur: 2 },
-  { id: "NUBANK", style: { right: "1%", top: "8%" }, size: 22, opacity: 0.16, blur: 2.2 },
-  { id: "EFI", style: { left: "26%", top: "90%" }, size: 16, opacity: 0.14, blur: 2.4 },
-  { id: "SANTANDER", style: { left: "88%", top: "10%" }, size: 18, opacity: 0.14, blur: 2.2 },
-  { id: "ASAAS", style: { left: "40%", top: "5%" }, size: 20, opacity: 0.14, blur: 2.4 },
-  { id: "MERCADOPAGO", style: { left: "18%", top: "36%" }, size: 16, opacity: 0.12, blur: 2.6 },
+  { id: "PICPAY", style: { left: "2%", top: "26%" }, size: 34, opacity: 0.22, blur: 1.5 },
+  { id: "NUBANK", style: { left: "12%", top: "84%" }, size: 26, opacity: 0.18, blur: 2 },
+  { id: "INTER", style: { left: "33%", top: "8%" }, size: 30, opacity: 0.2, blur: 1.6 },
+  { id: "SANTANDER", style: { left: "44%", top: "88%" }, size: 24, opacity: 0.18, blur: 2.2 },
+  { id: "MERCADOPAGO", style: { left: "60%", top: "6%" }, size: 20, opacity: 0.2, blur: 1.8 },
+  { id: "EFI", style: { left: "68%", top: "90%" }, size: 22, opacity: 0.18, blur: 1.8 },
+  { id: "ASAAS", style: { left: "80%", top: "12%" }, size: 28, opacity: 0.2, blur: 1.4 },
+  { id: "BRADESCO", style: { left: "96%", top: "70%" }, size: 26, opacity: 0.18, blur: 2 },
+  { id: "ITAU", style: { left: "3%", top: "52%" }, size: 18, opacity: 0.16, blur: 2.4 },
+  { id: "PICPAY", style: { right: "2%", top: "40%" }, size: 40, opacity: 0.16, blur: 2.6 },
+  { id: "INTER", style: { right: "7%", top: "88%" }, size: 18, opacity: 0.14, blur: 2 },
+  { id: "NUBANK", style: { right: "1%", top: "6%" }, size: 22, opacity: 0.16, blur: 2.2 },
+  { id: "EFI", style: { left: "26%", top: "94%" }, size: 16, opacity: 0.14, blur: 2.4 },
+  { id: "SANTANDER", style: { left: "88%", top: "4%" }, size: 18, opacity: 0.14, blur: 2.2 },
+  { id: "ASAAS", style: { left: "40%", top: "3%" }, size: 20, opacity: 0.14, blur: 2.4 },
+  { id: "MERCADOPAGO", style: { left: "16%", top: "34%" }, size: 16, opacity: 0.12, blur: 2.6 },
 ];
 
 export function BankFlagsBackground({ className }: { className?: string }) {
@@ -105,10 +105,10 @@ export function BankFlagsBackground({ className }: { className?: string }) {
                 backgroundImage: `linear-gradient(135deg, ${brand.color}, ${brand.colorTo})`,
                 "--flag-duration": `${17 + (i % 5) * 4}s`,
                 "--flag-delay": `${-(i * 2.6)}s`,
-                "--flag-rot": `${-7 + (i % 4) * 4}deg`,
+                "--flag-rot": `${-3 + (i % 3) * 3}deg`,
                 "--flag-dx": `${(i % 2 === 0 ? 1 : -1) * (7 + (i % 3) * 4)}px`,
                 "--flag-dy": `${-(7 + (i % 4) * 6)}px`,
-                "--flag-spin": `${i % 2 === 0 ? 7 : -6}deg`,
+                "--flag-spin": `${i % 2 === 0 ? 4 : -3}deg`,
               } as CSSProperties
             }
           />
@@ -121,11 +121,11 @@ export function BankFlagsBackground({ className }: { className?: string }) {
         // variação determinística de movimento: nada depende de Math.random()
         const duration = 11 + (i % 5) * 3;
         const delay = -(i * 1.9);
-        const rotate = -8 + (i % 4) * 5;
+        const rotate = -3 + (i % 3) * 3;
         const dx = (i % 2 === 0 ? 1 : -1) * (12 + (i % 4) * 6);
         // a faixa do topo desce pouco e a da base sobe pouco: nada invade o conteúdo
-        const dy = flag.band === "top" ? 7 + (i % 3) * 3 : -(5 + (i % 3) * 3);
-        const spin = i % 2 === 0 ? 4 : -3;
+        const dy = flag.band === "top" ? 6 + (i % 3) * 3 : -(5 + (i % 3) * 3);
+        const spin = i % 2 === 0 ? 2 : -2;
 
         return (
           <div
