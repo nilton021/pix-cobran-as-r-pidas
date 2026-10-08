@@ -33,15 +33,15 @@ type Flag = {
 
 // Posições fixas (sem aleatoriedade) para renderizar igual no servidor e no navegador.
 const FLAGS: Flag[] = [
-  { id: "PICPAY", left: "4%", sm: 14, md: 48, depth: "near", band: "top" },
+  { id: "PICPAY", left: "6%", sm: 16, md: 48, depth: "near", band: "top" },
   { id: "ITAU", left: "24%", sm: 40, md: 40, depth: "mid", band: "top", wideOnly: true },
-  { id: "NUBANK", left: "52%", sm: 18, md: 52, depth: "mid", band: "top" },
+  { id: "NUBANK", left: "52%", sm: 20, md: 52, depth: "mid", band: "top", wideOnly: true },
   { id: "SANTANDER", left: "47%", sm: 44, md: 56, depth: "far", band: "top", wideOnly: true },
   { id: "BRADESCO", left: "80%", sm: 40, md: 44, depth: "far", band: "top", wideOnly: true },
-  { id: "MERCADOPAGO", left: "5%", sm: 14, md: 44, depth: "mid", band: "bottom", wideOnly: true },
-  { id: "INTER", left: "26%", sm: 12, md: 56, depth: "near", band: "bottom" },
+  { id: "MERCADOPAGO", left: "5%", sm: 16, md: 44, depth: "mid", band: "bottom", wideOnly: true },
+  { id: "INTER", left: "30%", sm: 16, md: 56, depth: "near", band: "bottom" },
   { id: "EFI", left: "50%", sm: 16, md: 40, depth: "far", band: "bottom", wideOnly: true },
-  { id: "ASAAS", left: "72%", sm: 14, md: 48, depth: "mid", band: "bottom", wideOnly: true },
+  { id: "ASAAS", left: "72%", sm: 16, md: 48, depth: "mid", band: "bottom", wideOnly: true },
 ];
 
 /** Quadrados de marca espalhados: dão profundidade e funcionam em qualquer largura. */
