@@ -97,13 +97,13 @@ export function BankFlagsBackground({ className }: { className?: string }) {
         const brand = BANK_BRANDS[flag.id];
         const depth = DEPTH[flag.depth];
         // variação determinística de movimento: nada depende de Math.random()
-        const duration = 15 + (i % 5) * 4;
-        const delay = -(i * 2.3);
+        const duration = 11 + (i % 5) * 3;
+        const delay = -(i * 1.9);
         const rotate = -8 + (i % 4) * 5;
-        const dx = (i % 2 === 0 ? 1 : -1) * (6 + (i % 4) * 5);
+        const dx = (i % 2 === 0 ? 1 : -1) * (12 + (i % 4) * 6);
         // a faixa do topo desce e a da base sobe: nenhuma bandeira invade o conteúdo
-        const dy = flag.band === "top" ? 10 + (i % 3) * 6 : -(10 + (i % 3) * 8);
-        const spin = i % 2 === 0 ? 3 : -2;
+        const dy = flag.band === "top" ? 14 + (i % 3) * 8 : -(14 + (i % 3) * 10);
+        const spin = i % 2 === 0 ? 4 : -3;
 
         return (
           <div
