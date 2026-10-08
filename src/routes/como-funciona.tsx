@@ -82,8 +82,9 @@ function ComoFunciona() {
       </header>
 
       <main>
-        <section className="border-b">
-          <div className="mx-auto grid max-w-6xl gap-10 px-4 py-16 md:grid-cols-[1.15fr_.85fr] md:items-center md:py-24">
+        <section className="relative overflow-hidden border-b">
+          <BankFlagsBackground />
+          <div className="relative z-10 mx-auto grid max-w-6xl gap-10 px-4 py-16 md:grid-cols-[1.15fr_.85fr] md:items-center md:py-24">
             <div>
               <span className="inline-flex items-center rounded-full border bg-card px-3 py-1 text-xs font-semibold text-muted-foreground">
                 Recebimentos Pix organizados em um só lugar
