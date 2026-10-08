@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { createApiAuditContext, recordApiAudit } from "@/lib/api-audit.server";
+import { PicPayError } from "@/lib/picpay.server";
 
 const schema = z.object({
   amountCents: z.number().int().min(1),
@@ -116,7 +117,7 @@ export const Route = createFileRoute("/api/v1/charges")({
           if (insertError || !charge) throw new Error("Não foi possível criar a cobrança");
 
           try {
-            const { createPixCharge, PicPayError } = await import("@/lib/picpay.server");
+            const { createPixCharge } = await import("@/lib/picpay.server");
             const res = await createPixCharge(integrationId, {
               merchantChargeId: charge.id,
               customer: {
