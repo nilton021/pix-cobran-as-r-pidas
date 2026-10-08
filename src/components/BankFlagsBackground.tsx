@@ -13,9 +13,9 @@ type Depth = "far" | "mid" | "near";
 type Band = "top" | "bottom";
 
 const DEPTH: Record<Depth, { scale: number; opacity: number; blur: number }> = {
-  far: { scale: 0.68, opacity: 0.36, blur: 1.8 },
-  mid: { scale: 0.85, opacity: 0.52, blur: 0.8 },
-  near: { scale: 1.02, opacity: 0.68, blur: 0 },
+  far: { scale: 0.72, opacity: 0.5, blur: 0.6 },
+  mid: { scale: 0.86, opacity: 0.62, blur: 0.4 },
+  near: { scale: 1.02, opacity: 0.74, blur: 0 },
 };
 
 type Flag = {
@@ -33,15 +33,15 @@ type Flag = {
 
 // Posições fixas (sem aleatoriedade) para renderizar igual no servidor e no navegador.
 const FLAGS: Flag[] = [
-  { id: "PICPAY", left: "6%", sm: 16, md: 26, depth: "near", band: "top" },
-  { id: "ITAU", left: "24%", sm: 40, md: 30, depth: "mid", band: "top", wideOnly: true },
-  { id: "NUBANK", left: "52%", sm: 20, md: 24, depth: "mid", band: "top", wideOnly: true },
-  { id: "SANTANDER", left: "40%", sm: 44, md: 28, depth: "far", band: "top", wideOnly: true },
-  { id: "BRADESCO", left: "78%", sm: 40, md: 26, depth: "far", band: "top", wideOnly: true },
-  { id: "MERCADOPAGO", left: "5%", sm: 16, md: 28, depth: "mid", band: "bottom", wideOnly: true },
-  { id: "INTER", left: "30%", sm: 8, md: 30, depth: "near", band: "bottom" },
-  { id: "EFI", left: "54%", sm: 16, md: 24, depth: "far", band: "bottom", wideOnly: true },
-  { id: "ASAAS", left: "72%", sm: 16, md: 26, depth: "mid", band: "bottom", wideOnly: true },
+  { id: "PICPAY", left: "5%", sm: 12, md: 26, depth: "mid", band: "top" },
+  { id: "ITAU", left: "22%", sm: 40, md: 34, depth: "near", band: "top", wideOnly: true },
+  { id: "SANTANDER", left: "42%", sm: 44, md: 24, depth: "mid", band: "top", wideOnly: true },
+  { id: "NUBANK", left: "56%", sm: 16, md: 32, depth: "far", band: "top" },
+  { id: "BRADESCO", left: "84%", sm: 40, md: 26, depth: "mid", band: "top", wideOnly: true },
+  { id: "MERCADOPAGO", left: "5%", sm: 16, md: 40, depth: "mid", band: "bottom", wideOnly: true },
+  { id: "INTER", left: "6%", sm: 10, md: 44, depth: "mid", band: "bottom" },
+  { id: "ASAAS", left: "58%", sm: 14, md: 42, depth: "far", band: "bottom" },
+  { id: "EFI", left: "40%", sm: 16, md: 36, depth: "far", band: "bottom", wideOnly: true },
 ];
 
 /** Quadrados de marca nas faixas de respiro: visíveis em qualquer largura. */
