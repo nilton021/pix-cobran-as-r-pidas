@@ -10,13 +10,14 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
-import { Route as LoginRouteImport } from './routes/login'
 import { Route as ComoFuncionaRouteImport } from './routes/como-funciona'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
 import { Route as AuthenticatedCobrancasIdRouteImport } from './routes/_authenticated/cobrancas.$id'
 import { Route as AuthenticatedContasIndexRouteImport } from './routes/_authenticated/contas.index'
 import { Route as AuthenticatedContasIdRouteImport } from './routes/_authenticated/contas.$id'
+import { Route as ApiPublicEfiWebhookRouteImport } from './routes/api/public/efi-webhook'
 import { Route as ApiPublicPicpayWebhookRouteImport } from './routes/api/public/picpay-webhook'
 import { Route as ApiPublicReconcileChargesRouteImport } from './routes/api/public/reconcile-charges'
 import { Route as ApiV1ChargesRouteImport } from './routes/api/v1/charges'
@@ -26,14 +27,14 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ComoFuncionaRoute = ComoFuncionaRouteImport.update({
   id: '/como-funciona',
   path: '/como-funciona',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
@@ -64,6 +65,11 @@ const AuthenticatedContasIdRoute = AuthenticatedContasIdRouteImport.update({
   path: '/contas/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicEfiWebhookRoute = ApiPublicEfiWebhookRouteImport.update({
+  id: '/api/public/efi-webhook',
+  path: '/api/public/efi-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPicpayWebhookRoute = ApiPublicPicpayWebhookRouteImport.update({
   id: '/api/public/picpay-webhook',
   path: '/api/public/picpay-webhook',
@@ -88,11 +94,12 @@ const ApiV1ChargesIdRoute = ApiV1ChargesIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
-  '/login': typeof LoginRoute
   '/como-funciona': typeof ComoFuncionaRoute
+  '/login': typeof LoginRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/cobrancas/$id': typeof AuthenticatedCobrancasIdRoute
   '/contas/$id': typeof AuthenticatedContasIdRoute
+  '/api/public/efi-webhook': typeof ApiPublicEfiWebhookRoute
   '/api/public/picpay-webhook': typeof ApiPublicPicpayWebhookRoute
   '/api/public/reconcile-charges': typeof ApiPublicReconcileChargesRoute
   '/api/v1/charges': typeof ApiV1ChargesRouteWithChildren
@@ -100,12 +107,13 @@ export interface FileRoutesByFullPath {
   '/api/v1/charges/$id': typeof ApiV1ChargesIdRoute
 }
 export interface FileRoutesByTo {
-  '/login': typeof LoginRoute
   '/como-funciona': typeof ComoFuncionaRoute
+  '/login': typeof LoginRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/': typeof AuthenticatedIndexRoute
   '/cobrancas/$id': typeof AuthenticatedCobrancasIdRoute
   '/contas/$id': typeof AuthenticatedContasIdRoute
+  '/api/public/efi-webhook': typeof ApiPublicEfiWebhookRoute
   '/api/public/picpay-webhook': typeof ApiPublicPicpayWebhookRoute
   '/api/public/reconcile-charges': typeof ApiPublicReconcileChargesRoute
   '/api/v1/charges': typeof ApiV1ChargesRouteWithChildren
@@ -115,12 +123,13 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
-  '/login': typeof LoginRoute
   '/como-funciona': typeof ComoFuncionaRoute
+  '/login': typeof LoginRoute
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/cobrancas/$id': typeof AuthenticatedCobrancasIdRoute
   '/_authenticated/contas/$id': typeof AuthenticatedContasIdRoute
+  '/api/public/efi-webhook': typeof ApiPublicEfiWebhookRoute
   '/api/public/picpay-webhook': typeof ApiPublicPicpayWebhookRoute
   '/api/public/reconcile-charges': typeof ApiPublicReconcileChargesRoute
   '/api/v1/charges': typeof ApiV1ChargesRouteWithChildren
@@ -131,11 +140,12 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/login'
     | '/como-funciona'
+    | '/login'
     | '/configuracoes'
     | '/cobrancas/$id'
     | '/contas/$id'
+    | '/api/public/efi-webhook'
     | '/api/public/picpay-webhook'
     | '/api/public/reconcile-charges'
     | '/api/v1/charges'
@@ -143,12 +153,13 @@ export interface FileRouteTypes {
     | '/api/v1/charges/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/login'
     | '/como-funciona'
+    | '/login'
     | '/configuracoes'
     | '/'
     | '/cobrancas/$id'
     | '/contas/$id'
+    | '/api/public/efi-webhook'
     | '/api/public/picpay-webhook'
     | '/api/public/reconcile-charges'
     | '/api/v1/charges'
@@ -157,11 +168,13 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_authenticated'
+    | '/como-funciona'
     | '/login'
     | '/_authenticated/configuracoes'
     | '/_authenticated/'
     | '/_authenticated/cobrancas/$id'
     | '/_authenticated/contas/$id'
+    | '/api/public/efi-webhook'
     | '/api/public/picpay-webhook'
     | '/api/public/reconcile-charges'
     | '/api/v1/charges'
@@ -171,8 +184,9 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
-  LoginRoute: typeof LoginRoute
   ComoFuncionaRoute: typeof ComoFuncionaRoute
+  LoginRoute: typeof LoginRoute
+  ApiPublicEfiWebhookRoute: typeof ApiPublicEfiWebhookRoute
   ApiPublicPicpayWebhookRoute: typeof ApiPublicPicpayWebhookRoute
   ApiPublicReconcileChargesRoute: typeof ApiPublicReconcileChargesRoute
   ApiV1ChargesRoute: typeof ApiV1ChargesRouteWithChildren
@@ -187,18 +201,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/como-funciona': {
       id: '/como-funciona'
       path: '/como-funciona'
       fullPath: '/como-funciona'
       preLoaderRoute: typeof ComoFuncionaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/': {
@@ -235,6 +249,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/contas/$id'
       preLoaderRoute: typeof AuthenticatedContasIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/public/efi-webhook': {
+      id: '/api/public/efi-webhook'
+      path: '/api/public/efi-webhook'
+      fullPath: '/api/public/efi-webhook'
+      preLoaderRoute: typeof ApiPublicEfiWebhookRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/picpay-webhook': {
       id: '/api/public/picpay-webhook'
@@ -300,8 +321,9 @@ const ApiV1ChargesRouteWithChildren = ApiV1ChargesRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
-  LoginRoute: LoginRoute,
   ComoFuncionaRoute: ComoFuncionaRoute,
+  LoginRoute: LoginRoute,
+  ApiPublicEfiWebhookRoute: ApiPublicEfiWebhookRoute,
   ApiPublicPicpayWebhookRoute: ApiPublicPicpayWebhookRoute,
   ApiPublicReconcileChargesRoute: ApiPublicReconcileChargesRoute,
   ApiV1ChargesRoute: ApiV1ChargesRouteWithChildren,
