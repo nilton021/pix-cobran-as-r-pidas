@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { BankFlagsBackground } from "@/components/BankFlagsBackground";
 import {
   ArrowRight,
   CheckCircle2,

@@ -112,3 +112,21 @@
 
 @utility bg-brand { background-image: var(--gradient-brand); }
 @utility tabular { font-variant-numeric: tabular-nums; }
+
+/* Flutuação das bandeiras de bancos (fundo decorativo da página "Como funciona") */
+@keyframes bank-flag-float {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(var(--flag-rot, 0deg)); }
+  50% {
+    transform: translate3d(var(--flag-dx, 0px), var(--flag-dy, -16px), 0)
+      rotate(calc(var(--flag-rot, 0deg) + var(--flag-spin, 4deg)));
+  }
+}
+
+@utility bank-flag {
+  animation: bank-flag-float var(--flag-duration, 18s) ease-in-out var(--flag-delay, 0s) infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bank-flag { animation: none; }
+}
