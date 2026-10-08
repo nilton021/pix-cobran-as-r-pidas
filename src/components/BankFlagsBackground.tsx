@@ -110,7 +110,7 @@ export function BankFlagsBackground({ className }: { className?: string }) {
       {BAND_TILES.map((tile, i) => {
         const brand = BANK_BRANDS[tile.id];
         return (
-          <span key={`band-${tile.id}-${i}`} className={cn("absolute rounded-xl", tile.band === "top" ? "bf-top" : "bf-bottom")} style={{ left: tile.left, width: tile.size, height: tile.size, opacity: tile.opacity, filter: `blur(${tile.blur}px)`, backgroundImage: `linear-gradient(135deg, ${brand.color}, ${brand.colorTo})`, "--bf-sm": `${tile.sm}px`, "--bf-md": `${tile.md}px`, ...animationStyle(randomMotions[`band-${tile.id}-${i}`] ?? tileVars(i, tile.band)) } as CSSProperties}>
+          <span key={`band-${tile.id}-${i}`} className={cn("absolute rounded-xl bank-flag", tile.band === "top" ? "bf-top" : "bf-bottom")} style={{ left: tile.left, width: tile.size, height: tile.size, opacity: tile.opacity, filter: `blur(${tile.blur}px)`, backgroundImage: `linear-gradient(135deg, ${brand.color}, ${brand.colorTo})`, "--bf-sm": `${tile.sm}px`, "--bf-md": `${tile.md}px`, ...animationStyle(randomMotions[`band-${tile.id}-${i}`] ?? tileVars(i, tile.band)) } as CSSProperties}>
           </span>
         );
       })}
@@ -118,7 +118,7 @@ export function BankFlagsBackground({ className }: { className?: string }) {
       {TILES.map((tile, i) => {
         const brand = BANK_BRANDS[tile.id];
         return (
-          <span key={`tile-${tile.id}-${i}`} className="absolute hidden rounded-xl md:block" style={{ ...tile.style, width: tile.size, height: tile.size, opacity: tile.opacity, filter: `blur(${tile.blur}px)`, backgroundImage: `linear-gradient(135deg, ${brand.color}, ${brand.colorTo})`, ...animationStyle(randomMotions[`tile-${tile.id}-${i}`] ?? tileVars(i)) } as CSSProperties}>
+          <span key={`tile-${tile.id}-${i}`} className="absolute hidden rounded-xl bank-flag md:block" style={{ ...tile.style, width: tile.size, height: tile.size, opacity: tile.opacity, filter: `blur(${tile.blur}px)`, backgroundImage: `linear-gradient(135deg, ${brand.color}, ${brand.colorTo})`, ...animationStyle(randomMotions[`tile-${tile.id}-${i}`] ?? tileVars(i)) } as CSSProperties}>
           </span>
         );
       })}
@@ -134,7 +134,7 @@ export function BankFlagsBackground({ className }: { className?: string }) {
         const spin = i % 2 === 0 ? 2 : -2;
 
         return (
-          <div key={`${flag.id}-${i}`} className={cn("absolute", flag.band === "top" ? "bf-top" : "bf-bottom", flag.wideOnly && "hidden md:block")} style={{ left: flag.left, "--bf-sm": `${flag.sm}px`, "--bf-md": `${flag.md}px`, ...animationStyle(randomMotions[`${flag.id}-${i}`] ?? { "--flag-duration": `${duration}s`, "--flag-delay": `${delay}s`, "--flag-rot": `${rotate}deg`, "--flag-dx": `${dx}px`, "--flag-dy": `${dy}px`, "--flag-spin": `${spin}deg` }) } as CSSProperties}>
+          <div key={`${flag.id}-${i}`} className={cn("absolute bank-flag", flag.band === "top" ? "bf-top" : "bf-bottom", flag.wideOnly && "hidden md:block")} style={{ left: flag.left, "--bf-sm": `${flag.sm}px`, "--bf-md": `${flag.md}px`, ...animationStyle(randomMotions[`${flag.id}-${i}`] ?? { "--flag-duration": `${duration}s`, "--flag-delay": `${delay}s`, "--flag-rot": `${rotate}deg`, "--flag-dx": `${dx}px`, "--flag-dy": `${dy}px`, "--flag-spin": `${spin}deg` }) } as CSSProperties}>
             <div className="flex items-center gap-2 rounded-xl border bg-card/85 px-2.5 py-2 shadow-sm" style={{ transform: `scale(${depth.scale})`, opacity: depth.opacity, filter: depth.blur ? `blur(${depth.blur}px)` : undefined }}>
               <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md text-[10px] font-extrabold text-primary-foreground" style={{ backgroundImage: `linear-gradient(135deg, ${brand.color}, ${brand.colorTo})` }}>{brand.initials}</span>
               <span className="whitespace-nowrap text-xs font-semibold text-foreground/80">{brand.name}</span>
