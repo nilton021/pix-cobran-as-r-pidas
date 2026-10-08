@@ -127,6 +127,14 @@
   will-change: transform;
 }
 
+/* faixas de respiro onde as bandeiras com nome flutuam (topo e base da tela) */
+.bf-top { top: var(--bf-sm); }
+.bf-bottom { bottom: var(--bf-sm); }
+@media (min-width: 768px) {
+  .bf-top { top: var(--bf-md); }
+  .bf-bottom { bottom: var(--bf-md); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .bank-flag { animation: none; }
 }
