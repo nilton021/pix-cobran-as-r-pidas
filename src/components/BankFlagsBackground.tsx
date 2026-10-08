@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { BANK_BRANDS, type BankBrandId } from "@/lib/bank-brands";
 import { cn } from "@/lib/utils";
 
@@ -87,7 +87,31 @@ function tileVars(i: number, band?: Band) {
   } as CSSProperties;
 }
 
+type MotionVars = Pick<CSSProperties, "--flag-duration" | "--flag-delay" | "--flag-rot" | "--flag-dx" | "--flag-dy" | "--flag-spin">;
+
+function randomMotion(): MotionVars {
+  const direction = Math.random() < 0.5 ? -1 : 1;
+  return {
+    "--flag-duration": (12 + Math.random() * 16) + "s",
+    "--flag-delay": (-Math.random() * 10) + "s",
+    "--flag-rot": (-5 + Math.random() * 10) + "deg",
+    "--flag-dx": (direction * (8 + Math.random() * 26)) + "px",
+    "--flag-dy": (direction * (6 + Math.random() * 24)) + "px",
+    "--flag-spin": (-5 + Math.random() * 10) + "deg",
+  };
+}
+
 export function BankFlagsBackground({ className }: { className?: string }) {
+  const [randomMotions, setRandomMotions] = useState<Record<string, MotionVars>>({});
+
+  useEffect(() => {
+    const motions: Record<string, MotionVars> = {};
+    BAND_TILES.forEach((tile, i) => { motions["band-" + tile.id + "-" + i] = randomMotion(); });
+    TILES.forEach((tile, i) => { motions["tile-" + tile.id + "-" + i] = randomMotion(); });
+    FLAGS.forEach((flag, i) => { motions[flag.id + "-" + i] = randomMotion(); });
+    setRandomMotions(motions);
+  }, []);
+
   return (
     <div
       aria-hidden
@@ -131,7 +155,7 @@ export function BankFlagsBackground({ className }: { className?: string }) {
                 backgroundImage: `linear-gradient(135deg, ${brand.color}, ${brand.colorTo})`,
                 "--bf-sm": `${tile.sm}px`,
                 "--bf-md": `${tile.md}px`,
-                ...tileVars(i, tile.band),
+                ...(randomMotions["band-" + tile.id + "-" + i] ?? tileVars(i, tile.band)),
               } as CSSProperties
             }
           />
@@ -152,7 +176,7 @@ export function BankFlagsBackground({ className }: { className?: string }) {
                 opacity: tile.opacity,
                 filter: `blur(${tile.blur}px)`,
                 backgroundImage: `linear-gradient(135deg, ${brand.color}, ${brand.colorTo})`,
-                ...tileVars(i),
+                ...(randomMotions["tile-" + tile.id + "-" + i] ?? tileVars(i)),
               } as CSSProperties
             }
           />
@@ -184,12 +208,14 @@ export function BankFlagsBackground({ className }: { className?: string }) {
                 left: flag.left,
                 "--bf-sm": `${flag.sm}px`,
                 "--bf-md": `${flag.md}px`,
-                "--flag-duration": `${duration}s`,
-                "--flag-delay": `${delay}s`,
-                "--flag-rot": `${rotate}deg`,
-                "--flag-dx": `${dx}px`,
-                "--flag-dy": `${dy}px`,
-                "--flag-spin": `${spin}deg`,
+                ...(randomMotions[flag.id + "-" + i] ?? {
+                  "--flag-duration": `${duration}s`,
+                  "--flag-delay": `${delay}s`,
+                  "--flag-rot": `${rotate}deg`,
+                  "--flag-dx": `${dx}px`,
+                  "--flag-dy": `${dy}px`,
+                  "--flag-spin": `${spin}deg`,
+                }),
               } as CSSProperties
             }
           >
