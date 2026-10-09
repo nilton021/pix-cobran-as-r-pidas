@@ -178,7 +178,7 @@ export async function applyStatus(chargeId: string, remote: PicPayCharge, opts: 
 
   const { data, error: upErr } = await supabaseAdmin
     .from("charges")
-    .update(update)
+    .update(update as never)
     .eq("id", chargeId)
     .eq("status", current.status)
     .select()

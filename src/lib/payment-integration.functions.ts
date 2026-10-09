@@ -43,7 +43,7 @@ export const savePaymentIntegration = createServerFn({ method: "POST" })
     if (error || !account) throw new Error("Conta não encontrada");
 
     if (data.provider === "PICPAY") {
-      const { data: id, error: rpcError } = await context.supabase.rpc("save_picpay_integration", {
+      const { data: id, error: rpcError } = await (context.supabase.rpc as CallableFunction as (name: string, args: Record<string, unknown>) => Promise<{ data: string | null; error: { message: string } | null }>)("save_picpay_integration", {
         p_account_id: account.id,
         p_integration_id: data.integrationId ?? null,
         p_display_name: data.displayName,
@@ -57,7 +57,7 @@ export const savePaymentIntegration = createServerFn({ method: "POST" })
     }
 
     if (data.provider === "INTER") {
-      const { data: id, error: rpcError } = await context.supabase.rpc("save_inter_integration", {
+      const { data: id, error: rpcError } = await (context.supabase.rpc as CallableFunction as (name: string, args: Record<string, unknown>) => Promise<{ data: string | null; error: { message: string } | null }>)("save_inter_integration", {
         p_account_id: account.id,
         p_integration_id: data.integrationId ?? null,
         p_display_name: data.displayName,
@@ -74,7 +74,7 @@ export const savePaymentIntegration = createServerFn({ method: "POST" })
     }
 
     if (data.provider === "EFI") {
-      const { data: result, error: rpcError } = await context.supabase.rpc("save_efi_integration", {
+      const { data: result, error: rpcError } = await (context.supabase.rpc as CallableFunction as (name: string, args: Record<string, unknown>) => Promise<{ data: { integration_id: string; webhook_hmac: string }[] | null; error: { message: string } | null }>)("save_efi_integration", {
         p_account_id: account.id,
         p_integration_id: data.integrationId ?? null,
         p_display_name: data.displayName,
@@ -90,7 +90,7 @@ export const savePaymentIntegration = createServerFn({ method: "POST" })
       return { integrationId: row.integration_id, webhookHmac: row.webhook_hmac };
     }
 
-    const { data: id, error: rpcError } = await context.supabase.rpc("save_asaas_integration", {
+    const { data: id, error: rpcError } = await (context.supabase.rpc as CallableFunction as (name: string, args: Record<string, unknown>) => Promise<{ data: string | null; error: { message: string } | null }>)("save_asaas_integration", {
       p_account_id: account.id,
       p_integration_id: data.integrationId ?? null,
       p_display_name: data.displayName,

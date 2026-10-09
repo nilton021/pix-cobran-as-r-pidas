@@ -22,14 +22,14 @@ type Flag = {
 };
 
 const FLAGS: Flag[] = [
-  { id: "PICPAY", left: "5%", sm: 12, md: 26, depth: "mid", band: "top" },
+  { id: "PICPAY", left: "5%", sm: 12, md: 44, depth: "mid", band: "bottom", wideOnly: true },
   { id: "ITAU", left: "22%", sm: 40, md: 34, depth: "near", band: "top", wideOnly: true },
   { id: "SANTANDER", left: "42%", sm: 44, md: 24, depth: "mid", band: "top", wideOnly: true },
-  { id: "NUBANK", left: "56%", sm: 52, md: 32, depth: "far", band: "top" },
+  { id: "NUBANK", left: "56%", sm: 104, md: 32, depth: "far", band: "top", wideOnly: true },
   { id: "BRADESCO", left: "84%", sm: 40, md: 26, depth: "mid", band: "top", wideOnly: true },
-  { id: "MERCADOPAGO", left: "5%", sm: 16, md: 40, depth: "mid", band: "bottom", wideOnly: true },
-  { id: "INTER", left: "6%", sm: 10, md: 44, depth: "mid", band: "bottom" },
-  { id: "ASAAS", left: "58%", sm: 46, md: 42, depth: "far", band: "bottom" },
+  { id: "MERCADOPAGO", left: "22%", sm: 16, md: 40, depth: "mid", band: "bottom", wideOnly: true },
+  { id: "INTER", left: "6%", sm: 10, md: 44, depth: "mid", band: "bottom", wideOnly: true },
+  { id: "ASAAS", left: "30%", sm: 30, md: 64, depth: "far", band: "bottom", wideOnly: true },
   { id: "EFI", left: "40%", sm: 16, md: 36, depth: "far", band: "bottom", wideOnly: true },
 ];
 
@@ -61,7 +61,9 @@ const TILES: { id: BankBrandId; style: CSSProperties; size: number; opacity: num
   { id: "MERCADOPAGO", style: { left: "16%", top: "34%" }, size: 16, opacity: 0.12, blur: 2.6 },
 ];
 
-function tileVars(i: number, band?: Band): CSSProperties {
+type MotionVars = Record<`--flag-${string}`, string>;
+
+function tileVars(i: number, band?: Band): MotionVars {
   const up = band === "bottom" || !band;
   return {
     "--flag-duration": `${17 + (i % 5) * 4}s`,
@@ -70,10 +72,8 @@ function tileVars(i: number, band?: Band): CSSProperties {
     "--flag-dx": `${(i % 2 === 0 ? 1 : -1) * (7 + (i % 3) * 4)}px`,
     "--flag-dy": `${(up ? -1 : 1) * (7 + (i % 4) * 6)}px`,
     "--flag-spin": `${i % 2 === 0 ? 4 : -3}deg`,
-  } as CSSProperties;
+  };
 }
-
-type MotionVars = Pick<CSSProperties, "--flag-duration" | "--flag-delay" | "--flag-rot" | "--flag-dx" | "--flag-dy" | "--flag-spin">;
 
 function randomMotion(): MotionVars {
   const direction = Math.random() < 0.5 ? -1 : 1;

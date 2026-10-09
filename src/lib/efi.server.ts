@@ -1,5 +1,6 @@
 import https from "node:https";
 import { Buffer } from "node:buffer";
+import { createHash, timingSafeEqual } from "node:crypto";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 type EfiConfig = {
@@ -17,7 +18,8 @@ const cache = new Map<string, Token>();
 const pending = new Map<string, Promise<string>>();
 
 async function config(id: string): Promise<EfiConfig> {
-  const { data, error } = await supabaseAdmin.rpc("get_efi_integration_credentials", {
+  const rpc = supabaseAdmin.rpc as unknown as (name: string, args: Record<string, unknown>) => Promise<{ data: EfiConfig[] | null; error: { message: string } | null }>;
+  const { data, error } = await rpc("get_efi_integration_credentials", {
     p_integration_id: id,
   });
   const c = data?.[0];
@@ -194,9 +196,9 @@ async function callWithWebhookHeader(id: string, path: string, webhookUrl: strin
   const res = await request(base(c.environment) + path, {
     method: "PUT",
     certificate: c.certificate_base64,
-    password: c.certificate_password,
-    headers: {
-      Authorization: "Bearer " + accessToken,
+      password: c.certificate_password ?? undefined,
+      headers: {
+        Authorization: "Bearer " + accessToken,
       Accept: "application/json",
       "Content-Type": "application/json",
       "x-skip-mtls-checking": "true",
@@ -207,6 +209,12 @@ async function callWithWebhookHeader(id: string, path: string, webhookUrl: strin
     throw new Error("Falha ao configurar webhook Efí (" + res.status + "): " + res.body.slice(0, 300));
   }
   return res.body ? JSON.parse(res.body) : {};
+}
+
+export function safeEqual(a: string, b: string) {
+  const ha = createHash("sha256").update(a, "utf8").digest();
+  const hb = createHash("sha256").update(b, "utf8").digest();
+  return timingSafeEqual(ha, hb);
 }
 
 export function statusToLocal(status?: string) {

@@ -487,64 +487,6 @@ export type Database = {
         Args: { p_integration_id: string }
         Returns: string
       }
-      get_inter_integration_credentials: {
-        Args: { p_integration_id: string }
-        Returns: {
-          account_number: string | null
-          cert_pem: string
-          client_id: string
-          client_secret: string
-          environment: string
-          integration_id: string
-          key_pem: string
-          pix_key: string
-        }[]
-      }
-      get_efi_integration_credentials: {
-        Args: { p_integration_id: string }
-        Returns: {
-          certificate_base64: string
-          certificate_password: string | null
-          client_id: string
-          client_secret: string
-          environment: string
-          integration_id: string
-          pix_key: string
-          webhook_hmac: string
-        }[]
-      }
-      save_inter_integration: {
-        Args: {
-          p_account_id: string
-          p_account_number?: string | null
-          p_cert_pem?: string | null
-          p_client_id?: string | null
-          p_client_secret?: string | null
-          p_display_name?: string
-          p_environment?: string
-          p_integration_id?: string | null
-          p_key_pem?: string | null
-          p_pix_key?: string | null
-        }
-        Returns: string
-      }
-      save_efi_integration: {
-        Args: {
-          p_account_id: string
-          p_certificate_base64?: string | null
-          p_certificate_password?: string | null
-          p_client_id?: string | null
-          p_client_secret?: string | null
-          p_display_name?: string
-          p_environment?: string
-          p_integration_id?: string | null
-          p_pix_key?: string | null
-        }
-        Returns: {
-          integration_id: string
-          webhook_hmac: string
-        }[]
-      }
       purge_old_webhook_events: {
         Args: { p_retention_days?: number }
         Returns: number
