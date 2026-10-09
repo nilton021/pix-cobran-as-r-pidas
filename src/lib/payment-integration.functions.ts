@@ -57,7 +57,7 @@ export const savePaymentIntegration = createServerFn({ method: "POST" })
     }
 
     if (data.provider === "INTER") {
-      const { data: id, error: rpcError } = await context.supabase.rpc("save_inter_integration", {
+      const { data: id, error: rpcError } = await (context.supabase.rpc as CallableFunction as (name: string, args: Record<string, unknown>) => Promise<{ data: string | null; error: { message: string } | null }>)("save_inter_integration", {
         p_account_id: account.id,
         p_integration_id: data.integrationId ?? null,
         p_display_name: data.displayName,
@@ -74,7 +74,7 @@ export const savePaymentIntegration = createServerFn({ method: "POST" })
     }
 
     if (data.provider === "EFI") {
-      const { data: result, error: rpcError } = await context.supabase.rpc("save_efi_integration", {
+      const { data: result, error: rpcError } = await (context.supabase.rpc as CallableFunction as (name: string, args: Record<string, unknown>) => Promise<{ data: { integration_id: string; webhook_hmac: string }[] | null; error: { message: string } | null }>)("save_efi_integration", {
         p_account_id: account.id,
         p_integration_id: data.integrationId ?? null,
         p_display_name: data.displayName,

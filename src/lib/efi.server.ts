@@ -18,7 +18,8 @@ const cache = new Map<string, Token>();
 const pending = new Map<string, Promise<string>>();
 
 async function config(id: string): Promise<EfiConfig> {
-  const { data, error } = await supabaseAdmin.rpc("get_efi_integration_credentials", {
+  const rpc = supabaseAdmin.rpc as unknown as (name: string, args: Record<string, unknown>) => Promise<{ data: EfiConfig[] | null; error: { message: string } | null }>;
+  const { data, error } = await rpc("get_efi_integration_credentials", {
     p_integration_id: id,
   });
   const c = data?.[0];

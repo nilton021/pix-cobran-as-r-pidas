@@ -83,7 +83,7 @@ export const createCharge = createServerFn({ method: "POST" })
         txid?: string;
         id?: string;
       };
-      const pix: { payload?: string; encodedImage?: string; expirationDate?: string; qrCode?: string; qrCodeBase64?: string } | undefined =
+      const pix: { payload?: string | undefined; encodedImage?: string | undefined; expirationDate?: string | undefined; qrCode?: string | undefined; qrCodeBase64?: string | undefined } | undefined =
         provider === "ASAAS"
           ? r.pix
           : provider === "INTER" || provider === "EFI"
