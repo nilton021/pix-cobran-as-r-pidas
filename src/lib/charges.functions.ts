@@ -83,11 +83,12 @@ export const createCharge = createServerFn({ method: "POST" })
         txid?: string;
         id?: string;
       };
-      const pix = provider === "ASAAS"
-        ? r.pix
-        : provider === "INTER" || provider === "EFI"
-          ? { payload: r.pixCopiaECola }
-          : r.transactions?.[0]?.pix;
+      const pix: { payload?: string; encodedImage?: string; expirationDate?: string; qrCode?: string; qrCodeBase64?: string } | undefined =
+        provider === "ASAAS"
+          ? r.pix
+          : provider === "INTER" || provider === "EFI"
+            ? { payload: r.pixCopiaECola }
+            : r.transactions?.[0]?.pix;
       const remoteId = provider === "ASAAS"
         ? r.paymentId
         : provider === "INTER" || provider === "EFI"
