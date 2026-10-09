@@ -22,14 +22,14 @@ type Flag = {
 };
 
 const FLAGS: Flag[] = [
-  { id: "PICPAY", left: "5%", sm: 12, md: 26, depth: "mid", band: "top" },
+  { id: "PICPAY", left: "5%", sm: 12, md: 44, depth: "mid", band: "bottom", wideOnly: true },
   { id: "ITAU", left: "22%", sm: 40, md: 34, depth: "near", band: "top", wideOnly: true },
   { id: "SANTANDER", left: "42%", sm: 44, md: 24, depth: "mid", band: "top", wideOnly: true },
-  { id: "NUBANK", left: "56%", sm: 12, md: 32, depth: "far", band: "top" },
+  { id: "NUBANK", left: "56%", sm: 104, md: 32, depth: "far", band: "top" },
   { id: "BRADESCO", left: "84%", sm: 40, md: 26, depth: "mid", band: "top", wideOnly: true },
-  { id: "MERCADOPAGO", left: "5%", sm: 16, md: 40, depth: "mid", band: "bottom", wideOnly: true },
-  { id: "INTER", left: "6%", sm: 10, md: 44, depth: "mid", band: "bottom" },
-  { id: "ASAAS", left: "58%", sm: 12, md: 42, depth: "far", band: "bottom" },
+  { id: "MERCADOPAGO", left: "22%", sm: 16, md: 40, depth: "mid", band: "bottom", wideOnly: true },
+  { id: "INTER", left: "6%", sm: 10, md: 44, depth: "mid", band: "bottom", wideOnly: true },
+  { id: "ASAAS", left: "58%", sm: 30, md: 64, depth: "far", band: "bottom" },
   { id: "EFI", left: "40%", sm: 16, md: 36, depth: "far", band: "bottom", wideOnly: true },
 ];
 
