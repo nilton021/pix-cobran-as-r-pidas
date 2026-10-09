@@ -75,16 +75,24 @@ export const createCharge = createServerFn({ method: "POST" })
               amountCents: data.amountCents, expirationSeconds: data.expirationSeconds,
             });
 
+      const r = result as {
+        pix?: { payload?: string; encodedImage?: string; expirationDate?: string };
+        pixCopiaECola?: string;
+        transactions?: { pix?: { payload?: string; encodedImage?: string; expirationDate?: string } }[];
+        paymentId?: string;
+        txid?: string;
+        id?: string;
+      };
       const pix = provider === "ASAAS"
-        ? result.pix
+        ? r.pix
         : provider === "INTER" || provider === "EFI"
-          ? { payload: result.pixCopiaECola }
-          : result.transactions?.[0]?.pix;
+          ? { payload: r.pixCopiaECola }
+          : r.transactions?.[0]?.pix;
       const remoteId = provider === "ASAAS"
-        ? result.paymentId
+        ? r.paymentId
         : provider === "INTER" || provider === "EFI"
-          ? result.txid
-          : result.id;
+          ? r.txid
+          : r.id;
       const update: TablesUpdate<"charges"> = provider === "ASAAS"
         ? {
             provider_charge_id: remoteId ?? null,
