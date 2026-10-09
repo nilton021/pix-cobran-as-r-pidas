@@ -90,7 +90,7 @@ export const savePaymentIntegration = createServerFn({ method: "POST" })
       return { integrationId: row.integration_id, webhookHmac: row.webhook_hmac };
     }
 
-    const { data: id, error: rpcError } = await context.supabase.rpc("save_asaas_integration", {
+    const { data: id, error: rpcError } = await (context.supabase.rpc as CallableFunction as (name: string, args: Record<string, unknown>) => Promise<{ data: string | null; error: { message: string } | null }>)("save_asaas_integration", {
       p_account_id: account.id,
       p_integration_id: data.integrationId ?? null,
       p_display_name: data.displayName,
