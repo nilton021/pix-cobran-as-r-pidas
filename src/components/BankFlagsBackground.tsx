@@ -66,24 +66,24 @@ type MotionVars = Record<`--flag-${string}`, string>;
 function tileVars(i: number, band?: Band): MotionVars {
   const up = band === "bottom" || !band;
   return {
-    "--flag-duration": `${17 + (i % 5) * 4}s`,
+    "--flag-duration": `${8 + (i % 4) * 2}s`,
     "--flag-delay": `-${i * 2.6}s`,
-    "--flag-rot": `${-3 + (i % 3) * 3}deg`,
-    "--flag-dx": `${(i % 2 === 0 ? 1 : -1) * (7 + (i % 3) * 4)}px`,
-    "--flag-dy": `${(up ? -1 : 1) * (7 + (i % 4) * 6)}px`,
-    "--flag-spin": `${i % 2 === 0 ? 4 : -3}deg`,
+    "--flag-rot": `${-6 + (i % 3) * 6}deg`,
+    "--flag-dx": `${(i % 2 === 0 ? 1 : -1) * (24 + (i % 3) * 18)}px`,
+    "--flag-dy": `${(up ? -1 : 1) * (18 + (i % 4) * 12)}px`,
+    "--flag-spin": `${i % 2 === 0 ? 8 : -8}deg`,
   };
 }
 
 function randomMotion(): MotionVars {
   const direction = Math.random() < 0.5 ? -1 : 1;
   return {
-    "--flag-duration": `${12 + Math.random() * 16}s`,
+    "--flag-duration": `${7 + Math.random() * 7}s`,
     "--flag-delay": `-${Math.random() * 10}s`,
-    "--flag-rot": `${-5 + Math.random() * 10}deg`,
-    "--flag-dx": `${direction * (8 + Math.random() * 26)}px`,
-    "--flag-dy": `${direction * (6 + Math.random() * 24)}px`,
-    "--flag-spin": `${-5 + Math.random() * 10}deg`,
+    "--flag-rot": `${-6 + Math.random() * 12}deg`,
+    "--flag-dx": `${direction * (24 + Math.random() * 50)}px`,
+    "--flag-dy": `${direction * (18 + Math.random() * 44)}px`,
+    "--flag-spin": `${-8 + Math.random() * 16}deg`,
   };
 }
 
