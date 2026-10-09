@@ -1,5 +1,6 @@
 import https from "node:https";
 import { Buffer } from "node:buffer";
+import { createHash, timingSafeEqual } from "node:crypto";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 type EfiConfig = {
@@ -194,9 +195,9 @@ async function callWithWebhookHeader(id: string, path: string, webhookUrl: strin
   const res = await request(base(c.environment) + path, {
     method: "PUT",
     certificate: c.certificate_base64,
-    password: c.certificate_password,
-    headers: {
-      Authorization: "Bearer " + accessToken,
+      password: c.certificate_password ?? undefined,
+      headers: {
+        Authorization: "Bearer " + accessToken,
       Accept: "application/json",
       "Content-Type": "application/json",
       "x-skip-mtls-checking": "true",
@@ -207,6 +208,12 @@ async function callWithWebhookHeader(id: string, path: string, webhookUrl: strin
     throw new Error("Falha ao configurar webhook Efí (" + res.status + "): " + res.body.slice(0, 300));
   }
   return res.body ? JSON.parse(res.body) : {};
+}
+
+export function safeEqual(a: string, b: string) {
+  const ha = createHash("sha256").update(a, "utf8").digest();
+  const hb = createHash("sha256").update(b, "utf8").digest();
+  return timingSafeEqual(ha, hb);
 }
 
 export function statusToLocal(status?: string) {
