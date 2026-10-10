@@ -14,6 +14,9 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ChargeView } from "@/components/ChargeView";
 import { createCharge } from "@/lib/charges.functions";
+import { generatePixDescription } from "@/lib/ai-description.functions";
+import { Textarea } from "@/components/ui/textarea";
+import { Sparkles } from "lucide-react";
 import { formatBRL, formatDateTime, maskDocument, maskMoney } from "@/lib/format";
 import { useChargesRealtime } from "@/hooks/use-charge-realtime";
 
@@ -55,6 +58,21 @@ function Conta() {
     },
   });
   const created = charges.data?.find((c) => c.id === createdId);
+
+  const genDesc = useServerFn(generatePixDescription);
+  const [aiReason, setAiReason] = useState("");
+  const [aiRef, setAiRef] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const generateDesc = async () => {
+    if (aiReason.trim().length < 3) { toast.error("Descreva o motivo da cobrança."); return; }
+    setAiLoading(true);
+    try {
+      const r = await genDesc({ data: { reason: aiReason, customerName: account.data?.name ?? undefined, reference: aiRef || undefined, amountCents: money.cents || undefined } });
+      if (r.error || !r.description) toast.error(r.error ?? "Não foi possível gerar.");
+      else { setDesc(r.description); toast.success("Descrição gerada — revise antes de emitir."); }
+    } catch { toast.error("Não foi possível gerar a descrição agora."); }
+    finally { setAiLoading(false); }
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,6 +121,12 @@ function Conta() {
             <form onSubmit={submit} className="space-y-4">
               <div className="space-y-1.5"><Label>Valor</Label>
                 <Input inputMode="numeric" placeholder="R$ 0,00" value={money.display} onChange={(e) => setMoney(maskMoney(e.target.value))} className="text-lg font-bold" />
+              </div>
+              <div className="space-y-2 rounded-xl border bg-muted/40 p-3">
+                <p className="flex items-center gap-1.5 text-sm font-semibold"><Sparkles className="h-4 w-4 text-primary" /> Gerar descrição com IA</p>
+                <Textarea rows={2} maxLength={500} placeholder="Motivo da cobrança (ex.: mensalidade de março do plano básico)" value={aiReason} onChange={(e) => setAiReason(e.target.value)} />
+                <Input maxLength={80} placeholder="Referência (opcional, ex.: pedido 1234)" value={aiRef} onChange={(e) => setAiRef(e.target.value)} />
+                <Button type="button" variant="secondary" size="sm" className="w-full" disabled={aiLoading} onClick={generateDesc}>{aiLoading ? "Gerando…" : "Gerar descrição"}</Button>
               </div>
               <div className="space-y-1.5"><Label>Descrição (opcional)</Label><Input maxLength={140} value={desc} onChange={(e) => setDesc(e.target.value)} /></div>
               <div className="space-y-1.5"><Label>Expira em</Label>
