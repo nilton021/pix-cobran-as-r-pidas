@@ -64,7 +64,7 @@ function Conta() {
   const [aiRef, setAiRef] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const generateDesc = async () => {
-    if (aiReason.trim().length < 3) return toast.error("Descreva o motivo da cobrança.");
+    if (aiReason.trim().length < 3) { toast.error("Descreva o motivo da cobrança."); return; }
     setAiLoading(true);
     try {
       const r = await genDesc({ data: { reason: aiReason, customerName: account.data?.name ?? undefined, reference: aiRef || undefined, amountCents: money.cents || undefined } });
