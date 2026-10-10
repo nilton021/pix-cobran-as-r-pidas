@@ -76,14 +76,15 @@ function tileVars(i: number, band?: Band): MotionVars {
 }
 
 function randomMotion(): MotionVars {
-  const direction = Math.random() < 0.5 ? -1 : 1;
+  const dirX = Math.random() < 0.5 ? -1 : 1;
+  const dirY = Math.random() < 0.5 ? -1 : 1;
   return {
-    "--flag-duration": `${7 + Math.random() * 7}s`,
-    "--flag-delay": `-${Math.random() * 10}s`,
+    "--flag-duration": `${5 + Math.random() * 4}s`,
+    "--flag-delay": `-${Math.random() * 8}s`,
     "--flag-rot": `${-6 + Math.random() * 12}deg`,
-    "--flag-dx": `${direction * (24 + Math.random() * 50)}px`,
-    "--flag-dy": `${direction * (18 + Math.random() * 44)}px`,
-    "--flag-spin": `${-8 + Math.random() * 16}deg`,
+    "--flag-dx": `${dirX * (30 + Math.random() * 40)}px`,
+    "--flag-dy": `${dirY * (20 + Math.random() * 30)}px`,
+    "--flag-spin": `${-10 + Math.random() * 20}deg`,
   };
 }
 

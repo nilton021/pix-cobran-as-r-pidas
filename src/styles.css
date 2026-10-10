@@ -135,6 +135,7 @@
   .bf-bottom { bottom: var(--bf-md); }
 }
 
+/* Com "reduzir movimento" ativo, mantém uma flutuação mais lenta e suave (decorativa, sem piscar) */
 @media (prefers-reduced-motion: reduce) {
-  .bank-flag { animation: none; }
+  .bank-flag { animation-duration: calc(var(--flag-duration, 18s) * 1.6); }
 }
