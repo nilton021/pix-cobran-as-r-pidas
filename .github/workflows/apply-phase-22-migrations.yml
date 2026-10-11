@@ -182,12 +182,12 @@ jobs:
             join pg_namespace n on n.oid = p.pronamespace
             where n.nspname = 'public'
               and p.proname = 'delete_payment_integration'
-          ) as migration_0020_done \gset
-          \if :migration_0020_done
-            \echo '0020 já aplicada; validando exclusão segura de integração'
+          ) as migration_0021_done \gset
+          \if :migration_0021_done
+            \echo '0021 já aplicada; validando exclusão segura de integração'
           \else
-            \echo 'Aplicando 0020'
-            \i drizzle/migrations/0020_delete_payment_integration.sql
+            \echo 'Aplicando 0021'
+            \i drizzle/migrations/0021_delete_payment_integration.sql
           \endif
 
           commit;
