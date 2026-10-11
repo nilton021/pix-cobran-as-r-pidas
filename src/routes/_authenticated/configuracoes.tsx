@@ -218,35 +218,49 @@ function Config() {
       <section className="space-y-3 rounded-xl border bg-card p-5">
         <h2 className="font-bold">Escolha o provedor</h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {PAYMENT_PROVIDERS.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              disabled={item.status !== "available"}
-              onClick={() => {
-                if (item.id === "PICPAY" || item.id === "ASAAS" || item.id === "INTER" || item.id === "EFI") {
-                  const existing = integrations.find((integration) => integration.provider === item.id);
-                  setProvider(item.id);
-                  setIntegrationId(existing?.id ?? "");
-                  setDisplayName(existing?.display_name ?? item.name);
-                  if (existing) setEnvironment(existing.environment);
-                  setCredential1("");
-                  setCredential2("");
-                  setCredential3("");
-                  setCredential4("");
-                  setCredential5("");
-                  setCredential6("");
-                  setEfiWebhookHmac("");
-                }
-              }}
-              className={"rounded-lg border p-3 text-left " + (provider === item.id ? "border-primary bg-muted" : "")}
-            >
-              <div className="font-semibold">{item.name}</div>
-              <div className="text-xs text-muted-foreground">
-                {item.status === "available" ? "Disponível" : "Em breve"}
-              </div>
-            </button>
-          ))}
+          {PAYMENT_PROVIDERS.map((item) => {
+            const existing = integrations.find((integration) => integration.provider === item.id);
+            const existingStatus = existing?.status === "ACTIVE"
+              ? "ATIVO · CADASTRADO"
+              : existing?.status === "ERROR"
+                ? "ERRO · CADASTRADO"
+                : existing
+                  ? "INATIVO · CADASTRADO"
+                  : null;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                disabled={item.status !== "available"}
+                onClick={() => {
+                  if (item.id === "PICPAY" || item.id === "ASAAS" || item.id === "INTER" || item.id === "EFI") {
+                    setProvider(item.id);
+                    setIntegrationId(existing?.id ?? "");
+                    setDisplayName(existing?.display_name ?? item.name);
+                    if (existing) setEnvironment(existing.environment);
+                    setCredential1("");
+                    setCredential2("");
+                    setCredential3("");
+                    setCredential4("");
+                    setCredential5("");
+                    setCredential6("");
+                    setEfiWebhookHmac("");
+                  }
+                }}
+                className={"rounded-lg border p-3 text-left " + (provider === item.id ? "border-primary bg-muted" : "")}
+              >
+                <div className="font-semibold">{item.name}</div>
+                <div className="text-xs text-muted-foreground">
+                  {existingStatus ?? (item.status === "available" ? "Disponível" : "Em breve")}
+                </div>
+                {existing && (
+                  <div className="mt-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+                    Integração existente — selecione para gerenciar, não cadastre novamente.
+                  </div>
+                )}
+              </button>
+            );
+          })}
         </div>
       </section>
 
