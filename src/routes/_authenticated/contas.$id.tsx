@@ -42,6 +42,7 @@ function Conta() {
   const [money, setMoney] = useState({ display: "", cents: 0 });
   const [desc, setDesc] = useState("");
   const [exp, setExp] = useState("900");
+  const [integrationId, setIntegrationId] = useState("");
   const [loading, setLoading] = useState(false);
   const [createdId, setCreatedId] = useState<string | null>(null);
 
@@ -57,6 +58,24 @@ function Conta() {
       return data;
     },
   });
+  const integrations = useQuery({
+    queryKey: ["payment-integrations-active", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("payment_integrations")
+        .select("id, provider, display_name")
+        .eq("account_id", id)
+        .eq("status", "ACTIVE")
+        .in("provider", ["PICPAY", "ASAAS", "INTER", "EFI"])
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const activeIntegrations = integrations.data ?? [];
+  const selectedIntegrationId = activeIntegrations.some((item) => item.id === integrationId)
+    ? integrationId
+    : activeIntegrations[0]?.id ?? "";
   const created = charges.data?.find((c) => c.id === createdId);
 
   const genDesc = useServerFn(generatePixDescription);
@@ -80,7 +99,11 @@ function Conta() {
     if (!p.success) { toast.error(p.error.issues[0]?.message ?? "Dados inválidos"); return; }
     setLoading(true);
     try {
-      const c = await create({ data: { accountId: id, ...p.data, expirationSeconds: Number(exp) } });
+      if (!selectedIntegrationId) {
+        toast.error("Nenhum banco ativo está conectado a esta conta. Configure uma integração antes de cobrar.");
+        return;
+      }
+      const c = await create({ data: { accountId: id, integrationId: selectedIntegrationId, ...p.data, expirationSeconds: Number(exp) } });
       await charges.refetch();
       setCreatedId(c.id);
     } catch (err) {
@@ -89,7 +112,7 @@ function Conta() {
     } finally { setLoading(false); }
   };
 
-  const openNew = () => { setMoney({ display: "", cents: 0 }); setDesc(""); setExp("900"); setCreatedId(null); setOpen(true); };
+  const openNew = () => { setMoney({ display: "", cents: 0 }); setDesc(""); setExp("900"); setCreatedId(null); setIntegrationId(activeIntegrations[0]?.id ?? ""); setOpen(true); };
 
   return (
     <div className="space-y-4">
@@ -99,7 +122,7 @@ function Conta() {
           <h1 className="text-2xl font-extrabold">{account.data?.name ?? "…"}</h1>
           {account.data && <p className="text-sm text-muted-foreground">{account.data.document_type} {maskDocument(account.data.document)} · {account.data.email}</p>}
         </div>
-        <Button onClick={openNew}><Plus className="h-4 w-4" /> Nova cobrança</Button>
+        <Button onClick={openNew} disabled={integrations.isLoading || activeIntegrations.length === 0}><Plus className="h-4 w-4" /> Nova cobrança</Button>
       </div>
       <div className="divide-y rounded-xl border bg-card">
         {charges.data?.length === 0 && <p className="p-6 text-center text-sm text-muted-foreground">Nenhuma cobrança para esta conta.</p>}
@@ -119,6 +142,31 @@ function Conta() {
           <DialogHeader><DialogTitle>{created ? "Cobrança Pix" : "Nova cobrança"}</DialogTitle></DialogHeader>
           {created ? <ChargeView charge={created} /> : (
             <form onSubmit={submit} className="space-y-4">
+              {integrations.isLoading ? (
+                <p className="text-sm text-muted-foreground">Verificando bancos conectados…</p>
+              ) : activeIntegrations.length === 0 ? (
+                <div className="space-y-2 rounded-lg border border-dashed p-4 text-sm">
+                  <p>Nenhum banco conectado e ativo para esta conta.</p>
+                  <Link to="/configuracoes" className="font-semibold text-primary underline">Configurar integração de pagamento</Link>
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  <Label htmlFor="charge-provider">Banco conectado para receber</Label>
+                  <select
+                    id="charge-provider"
+                    className="w-full rounded-lg border bg-background px-3 py-2"
+                    value={selectedIntegrationId}
+                    onChange={(e) => setIntegrationId(e.target.value)}
+                    required
+                  >
+                    {activeIntegrations.map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.display_name} ({item.provider === "ASAAS" ? "Asaas" : item.provider === "EFI" ? "Efí Bank" : item.provider === "INTER" ? "Banco Inter" : "PicPay"})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div className="space-y-1.5"><Label>Valor</Label>
                 <Input inputMode="numeric" placeholder="R$ 0,00" value={money.display} onChange={(e) => setMoney(maskMoney(e.target.value))} className="text-lg font-bold" />
               </div>
@@ -136,7 +184,7 @@ function Conta() {
                   <ToggleGroupItem value="86400">24 h</ToggleGroupItem>
                 </ToggleGroup>
               </div>
-              <Button type="submit" className="w-full" disabled={loading}>{loading ? "Gerando Pix…" : "Gerar QR Code"}</Button>
+              <Button type="submit" className="w-full" disabled={loading || integrations.isLoading || activeIntegrations.length === 0 || !selectedIntegrationId}>{loading ? "Gerando Pix…" : "Gerar QR Code"}</Button>
             </form>
           )}
         </DialogContent>
