@@ -1,8 +1,8 @@
 name: Apply Phase 22 database migrations
 
-# Migrações 0001+ são SQL manual, aplicadas via psql e controladas por verificações
-# de existência abaixo; drizzle/migrations/meta/_journal.json registra somente 0000.
-# Não adicionar entradas artificiais ao journal nem a drizzle.__drizzle_migrations.
+# Migrações 0001+ são SQL manual (não passam pelo drizzle-kit). O controle de
+# aplicação é por verificação de existência (tabela, coluna, função ou constraint)
+# em cada etapa abaixo; veja drizzle/migrations/README.md.
 
 on:
   workflow_dispatch:
@@ -99,11 +99,30 @@ jobs:
             \i drizzle/migrations/0015_fix_auth_profile_trigger.sql
           \endif
 
-          select to_regclass('public.charges_legacy_backfill_idx') is not null as migration_0014_done \gset
+          select (
+            to_regclass('public.charges') is not null
+            and exists (
+              select 1 from pg_indexes
+               where schemaname = 'public'
+                 and indexname = 'charges_legacy_backfill_idx'
+            )
+            and not exists (
+              select 1
+                from public.charges c
+               where c.payment_integration_id is null
+                 and (
+                   select count(*)
+                     from public.payment_integrations pi
+                    where pi.account_id = c.account_id
+                      and pi.provider = 'PICPAY'
+                      and pi.status = 'ACTIVE'
+                 ) = 1
+            )
+          ) as migration_0014_done \gset
           \if :migration_0014_done
-            \echo '0014 já aplicada; índice de backfill encontrado'
+            \echo '0014 já concluída: índice presente e nenhuma cobrança legada elegível'
           \else
-            \echo 'Aplicando 0014: backfill de integração das cobranças legadas'
+            \echo 'Aplicando 0014'
             \i drizzle/migrations/0014_charge_integration_backfill.sql
           \endif
 
