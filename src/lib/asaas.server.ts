@@ -7,19 +7,14 @@ async function getConfig(id: string) {
   const { data, error } = await supabaseAdmin.rpc("get_asaas_integration_credentials", {
     p_integration_id: id,
   });
-  if (error) {
-    // Log only RPC diagnostics; never log returned credentials or Vault values.
-    console.error("[asaas-config] RPC get_asaas_integration_credentials failed", {
-      code: error.code,
-      message: error.message,
-      integrationId: id,
-    });
-    throw new Error("Integração Asaas não configurada");
-  }
   const row = data?.[0];
-  if (!row) {
-    console.error("[asaas-config] RPC returned no active Asaas integration", {
+  if (error || !row) {
+    // Log diagnostics only; never log credentials or Vault values.
+    console.error("[asaas] getConfig falhou", {
       integrationId: id,
+      code: error?.code,
+      message: error?.message,
+      hasRow: Boolean(row),
     });
     throw new Error("Integração Asaas não configurada");
   }
