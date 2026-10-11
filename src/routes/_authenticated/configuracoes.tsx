@@ -120,6 +120,7 @@ function Config() {
       : "/api/public/" + (provider === "ASAAS" ? "asaas-webhook" : provider === "INTER" ? "inter-webhook" : "picpay-webhook");
 
   const isEditing = Boolean(selected);
+  const isActiveIntegration = selected?.status === "ACTIVE";
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -277,6 +278,14 @@ function Config() {
           <ShieldCheck className="h-5 w-5" aria-hidden="true" />
         </div>
 
+        {isActiveIntegration && (
+          <div role="status" className="rounded-lg border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200">
+            <strong>Integração ativa — cadastro bloqueado.</strong>
+            <p className="mt-1">Para evitar um novo cadastro ou alterações acidentais, os campos desta integração estão bloqueados. A integração pode ser utilizada normalmente nas cobranças.</p>
+          </div>
+        )}
+
+        <fieldset disabled={isActiveIntegration} className="space-y-4 disabled:opacity-60">
         {integrations.length > 0 && (
           <label className="block space-y-1 text-sm">
             <span className="font-medium">Integração existente</span>
@@ -383,6 +392,7 @@ function Config() {
             {mutation.isPending ? "Salvando..." : isEditing ? "Salvar alterações" : integrations.some((item) => item.provider === provider) ? "Gerenciar integração existente" : "Cadastrar integração"}
           </Button>
         </div>
+        </fieldset>
       </section>
 
       <section className="space-y-3 rounded-xl border bg-card p-5">
