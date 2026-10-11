@@ -5,6 +5,7 @@ import type { TablesUpdate } from "@/integrations/supabase/types";
 
 const createSchema = z.object({
   accountId: z.string().uuid(),
+  integrationId: z.string().uuid(),
   amountCents: z.number().int().min(1),
   description: z.string().max(140).optional(),
   expirationSeconds: z.number().int().min(60).max(86400).default(900),
@@ -19,22 +20,18 @@ export const createCharge = createServerFn({ method: "POST" })
     if (error || !account) throw new Error("Conta não encontrada");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: integrations, error: integrationErr } = await context.supabase
+    const { data: integration, error: integrationErr } = await context.supabase
       .from("payment_integrations")
       .select("id, provider")
+      .eq("id", data.integrationId)
       .eq("account_id", account.id)
       .in("provider", ["PICPAY", "ASAAS", "INTER", "EFI"])
-      .eq("status", "ACTIVE");
+      .eq("status", "ACTIVE")
+      .maybeSingle();
 
-    if (integrationErr || !integrations || integrations.length !== 1) {
-      throw new Error(
-        integrations?.length
-          ? "É necessário manter exatamente uma integração de pagamentos ativa para esta conta."
-          : "Nenhuma integração de pagamentos ativa configurada para esta conta.",
-      );
+    if (integrationErr || !integration) {
+      throw new Error("O banco selecionado não está conectado e ativo para esta conta. Confira as integrações nas Configurações.");
     }
-
-    const integration = integrations[0]!;
     const paymentIntegrationId = integration.id;
     const provider = integration.provider;
     const picpay = provider === "PICPAY" ? await import("./picpay.server") : null;
