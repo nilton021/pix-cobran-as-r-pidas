@@ -8,7 +8,16 @@ async function getConfig(id: string) {
     p_integration_id: id,
   });
   const row = data?.[0];
-  if (error || !row) throw new Error("Integração Asaas não configurada");
+  if (error || !row) {
+    // Log diagnostics only; never log credentials or Vault values.
+    console.error("[asaas] getConfig falhou", {
+      integrationId: id,
+      code: error?.code,
+      message: error?.message,
+      hasRow: Boolean(row),
+    });
+    throw new Error("Integração Asaas não configurada");
+  }
   return row;
 }
 
