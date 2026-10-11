@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Copy, CheckCircle2, XCircle, ShieldCheck, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getPaymentSettings, savePaymentIntegration } from "@/lib/payment-integration.functions";
+import { getPaymentSettings, savePaymentIntegration, deletePaymentIntegration } from "@/lib/payment-integration.functions";
 import { PAYMENT_PROVIDERS } from "@/lib/payment-providers";
 
 export const Route = createFileRoute("/_authenticated/configuracoes")({
@@ -32,7 +32,7 @@ type Integration = {
 function Config() {
   const queryClient = useQueryClient();
   const load = useServerFn(getPaymentSettings);
-  const save = useServerFn(savePaymentIntegration);
+  const save = useServerFn(savePaymentIntegration);\n  const removeIntegration = useServerFn(deletePaymentIntegration);
   const [accountId, setAccountId] = useState("");
   const [integrationId, setIntegrationId] = useState("");
   const [provider, setProvider] = useState<"PICPAY" | "ASAAS" | "INTER" | "EFI">("PICPAY");
@@ -44,7 +44,7 @@ function Config() {
   const [credential4, setCredential4] = useState("");
   const [credential5, setCredential5] = useState("");
   const [credential6, setCredential6] = useState("");
-  const [showSecrets, setShowSecrets] = useState(false);
+  const [showSecrets, setShowSecrets] = useState(false);\n  const [confirmDelete, setConfirmDelete] = useState(false);
   const [origin, setOrigin] = useState("");
   const [efiWebhookHmac, setEfiWebhookHmac] = useState("");
 
@@ -108,6 +108,28 @@ function Config() {
       queryClient.invalidateQueries({ queryKey: ["payment-settings", "current"] });
     },
     onError: (error) => toast.error(error.message),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => {
+      if (!integrationId) throw new Error("Selecione uma integração para excluir");
+      return removeIntegration({ data: { integrationId } });
+    },
+    onSuccess: () => {
+      toast.success("Integração removida. As credenciais foram apagadas com segurança; você pode cadastrá-la novamente.");
+      setConfirmDelete(false);
+      setIntegrationId("");
+      setCredential1("");
+      setCredential2("");
+      setCredential3("");
+      setCredential4("");
+      setCredential5("");
+      setCredential6("");
+      setEfiWebhookHmac("");
+      queryClient.invalidateQueries({ queryKey: ["payment-settings", accountId] });
+      queryClient.invalidateQueries({ queryKey: ["payment-settings", "current"] });
+    },
+    onError: (error) => toast.error(error.message || "Não foi possível excluir a integração"),
   });
 
   const efiWebhookUrl = origin && efiWebhookHmac
@@ -393,6 +415,36 @@ function Config() {
           </Button>
         </div>
         </fieldset>
+
+        {selected && (
+          <div className="space-y-3 border-t pt-4">
+            {!confirmDelete ? (
+              <Button
+                type="button"
+                variant="destructive"
+                disabled={deleteMutation.isPending}
+                onClick={() => setConfirmDelete(true)}
+              >
+                Excluir integração
+              </Button>
+            ) : (
+              <div role="alertdialog" aria-labelledby="confirm-delete-title" aria-describedby="confirm-delete-description" className="space-y-3 rounded-lg border border-destructive/50 bg-destructive/5 p-4">
+                <h3 id="confirm-delete-title" className="font-bold">Tem certeza que quer excluir esta integração?</h3>
+                <p id="confirm-delete-description" className="text-sm text-muted-foreground">
+                  As credenciais e os segredos do webhook serão apagados. O registro histórico será preservado para não quebrar cobranças antigas. Você poderá cadastrar a integração novamente.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <Button type="button" variant="destructive" disabled={deleteMutation.isPending} onClick={() => deleteMutation.mutate()}>
+                    {deleteMutation.isPending ? "Excluindo..." : "Sim, excluir"}
+                  </Button>
+                  <Button type="button" variant="outline" disabled={deleteMutation.isPending} onClick={() => setConfirmDelete(false)}>
+                    Não, cancelar
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </section>
 
       <section className="space-y-3 rounded-xl border bg-card p-5">
