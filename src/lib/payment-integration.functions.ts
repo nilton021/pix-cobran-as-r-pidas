@@ -104,3 +104,15 @@ export const savePaymentIntegration = createServerFn({ method: "POST" })
     if (rpcError || !id) throw new Error(rpcError?.message || "Não foi possível salvar o Asaas");
     return { integrationId: id };
   });
+
+
+export const deletePaymentIntegration = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ integrationId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase.rpc("delete_payment_integration", {
+      p_integration_id: data.integrationId,
+    });
+    if (error) throw new Error(error.message || "Não foi possível excluir a integração");
+    return { success: true };
+  });
