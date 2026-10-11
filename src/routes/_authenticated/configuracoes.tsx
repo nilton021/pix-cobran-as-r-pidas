@@ -32,7 +32,8 @@ type Integration = {
 function Config() {
   const queryClient = useQueryClient();
   const load = useServerFn(getPaymentSettings);
-  const save = useServerFn(savePaymentIntegration);\n  const removeIntegration = useServerFn(deletePaymentIntegration);
+  const save = useServerFn(savePaymentIntegration);
+  const removeIntegration = useServerFn(deletePaymentIntegration);
   const [accountId, setAccountId] = useState("");
   const [integrationId, setIntegrationId] = useState("");
   const [provider, setProvider] = useState<"PICPAY" | "ASAAS" | "INTER" | "EFI">("PICPAY");
@@ -44,7 +45,8 @@ function Config() {
   const [credential4, setCredential4] = useState("");
   const [credential5, setCredential5] = useState("");
   const [credential6, setCredential6] = useState("");
-  const [showSecrets, setShowSecrets] = useState(false);\n  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [showSecrets, setShowSecrets] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [origin, setOrigin] = useState("");
   const [efiWebhookHmac, setEfiWebhookHmac] = useState("");
 
