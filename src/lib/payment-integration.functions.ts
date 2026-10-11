@@ -20,11 +20,14 @@ export const getPaymentSettings = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ accountId: z.string().uuid().optional() }).parse(d))
   .handler(async ({ data, context }) => {
-    let q = context.supabase.from("accounts").select("id, name").order("created_at", { ascending: true }).limit(1);
-    if (data.accountId) q = q.eq("id", data.accountId);
-    const { data: accounts, error } = await q;
-    const account = accounts?.[0];
-    if (error || !account) throw new Error("Conta não encontrada");
+    const { data: accounts, error: accountsError } = await context.supabase
+      .from("accounts").select("id, name").order("created_at", { ascending: true });
+    if (accountsError || !accounts?.length) throw new Error("Cadastre uma conta antes de configurar a integração");
+
+    const account = data.accountId
+      ? accounts.find((item) => item.id === data.accountId)
+      : accounts[0];
+    if (!account) throw new Error("Conta não encontrada");
 
     const { data: integrations, error: integrationError } = await context.supabase
       .from("payment_integrations")
@@ -32,7 +35,7 @@ export const getPaymentSettings = createServerFn({ method: "GET" })
       .eq("account_id", account.id)
       .order("created_at", { ascending: true });
     if (integrationError) throw new Error("Não foi possível carregar as integrações");
-    return { account, integrations: integrations ?? [] };
+    return { account, accounts, integrations: integrations ?? [] };
   });
 
 export const savePaymentIntegration = createServerFn({ method: "POST" })
