@@ -156,6 +156,65 @@ function Config() {
         </label>
       </section>
 
+      {integrations.length > 0 && (
+        <section className="space-y-3 rounded-xl border bg-card p-5">
+          <div>
+            <h2 className="font-bold">Integrações já cadastradas</h2>
+            <p className="text-xs text-muted-foreground">
+              Confira o status antes de cadastrar. Se o provedor já estiver cadastrado, gerencie a integração existente.
+            </p>
+          </div>
+          <div className="space-y-2">
+            {integrations.map((item) => {
+              const isActive = item.status === "ACTIVE";
+              const isError = item.status === "ERROR";
+              return (
+                <div key={item.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3">
+                  <div className="min-w-0">
+                    <div className="font-semibold">{item.display_name}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {item.provider} · {item.environment === "PRODUCTION" ? "Produção" : "Sandbox"}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className={"inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold " + (
+                      isActive
+                        ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                        : isError
+                          ? "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300"
+                          : "bg-muted text-muted-foreground"
+                    )}>
+                      {isActive ? <CheckCircle2 className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />}
+                      {isActive ? "ATIVA" : isError ? "ERRO" : "INATIVA"}
+                    </span>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setIntegrationId(item.id);
+                        setProvider(item.provider as "PICPAY" | "ASAAS" | "INTER" | "EFI");
+                        setDisplayName(item.display_name);
+                        setEnvironment(item.environment);
+                        setCredential1("");
+                        setCredential2("");
+                        setCredential3("");
+                        setCredential4("");
+                        setCredential5("");
+                        setCredential6("");
+                        setEfiWebhookHmac("");
+                      }}
+                    >
+                      Gerenciar
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       <section className="space-y-3 rounded-xl border bg-card p-5">
         <h2 className="font-bold">Escolha o provedor</h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -166,9 +225,11 @@ function Config() {
               disabled={item.status !== "available"}
               onClick={() => {
                 if (item.id === "PICPAY" || item.id === "ASAAS" || item.id === "INTER" || item.id === "EFI") {
+                  const existing = integrations.find((integration) => integration.provider === item.id);
                   setProvider(item.id);
-                  setIntegrationId("");
-                  setDisplayName(item.name);
+                  setIntegrationId(existing?.id ?? "");
+                  setDisplayName(existing?.display_name ?? item.name);
+                  if (existing) setEnvironment(existing.environment);
                   setCredential1("");
                   setCredential2("");
                   setCredential3("");
@@ -210,7 +271,9 @@ function Config() {
               value={integrationId}
               onChange={(e) => setIntegrationId(e.target.value)}
             >
-              <option value="">Nova integração</option>
+              {!integrations.some((item) => item.provider === provider) && (
+                <option value="">Nova integração</option>
+              )}
               {integrations.map((item) => (
                 <option key={item.id} value={item.id}>
                   {item.display_name} — {item.provider} — {item.environment} — {item.status}
@@ -303,7 +366,7 @@ function Config() {
             {showSecrets ? "Ocultar segredos" : "Mostrar campos"}
           </Button>
           <Button type="button" disabled={!accountId || !displayName.trim() || mutation.isPending} onClick={() => mutation.mutate()}>
-            {mutation.isPending ? "Salvando..." : isEditing ? "Salvar alterações" : "Cadastrar integração"}
+            {mutation.isPending ? "Salvando..." : isEditing ? "Salvar alterações" : integrations.some((item) => item.provider === provider) ? "Gerenciar integração existente" : "Cadastrar integração"}
           </Button>
         </div>
       </section>
