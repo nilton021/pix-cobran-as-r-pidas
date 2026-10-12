@@ -22,6 +22,15 @@ describe("Asaas service-role JWT claim compatibility migration", () => {
     expect(sql).toContain("to service_role");
   });
 
+  it("is wired into the apply workflow with an idempotent existence check", () => {
+    const workflow = readFileSync(
+      resolve(process.cwd(), ".github/workflows/apply-phase-22-migrations.yml"),
+      "utf8",
+    );
+    expect(workflow).toContain("migration_0022_done");
+    expect(workflow).toContain("drizzle/migrations/0022_asaas_service_role_claims.sql");
+  });
+
   it("does not weaken provider or active-integration checks", () => {
     expect(sql).toContain("pi.provider = 'ASAAS'");
     expect(sql).toContain("pi.status = 'ACTIVE'");
