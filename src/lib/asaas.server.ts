@@ -35,9 +35,24 @@ async function call(id: string, path: string, init: RequestInit = {}) {
   return fetch(origin(cfg.environment) + path, { ...init, headers: { ...headers, ...(init.headers ?? {}) } });
 }
 
-async function readJson<T>(res: Response): Promise<T> {
+async function readJson<T>(res: Response, step: string): Promise<T> {
   const body = await res.text();
-  if (!res.ok) throw new Error("Asaas respondeu " + res.status);
+  if (!res.ok) {
+    let detail = "";
+    try {
+      const errors = (JSON.parse(body) as {
+        errors?: Array<{ code?: string; description?: string }>;
+      }).errors;
+      detail = (errors ?? [])
+        .map((e) => `${e.code ?? "erro"}: ${e.description ?? ""}`)
+        .join("; ")
+        .slice(0, 300);
+    } catch {
+      /* corpo não-JSON */
+    }
+    console.error("[asaas] resposta de erro", { step, status: res.status, detail });
+    throw new Error(`Asaas respondeu ${res.status} (${step})${detail ? ": " + detail : ""}`);
+  }
   return JSON.parse(body) as T;
 }
 
@@ -46,7 +61,8 @@ export async function createPixCharge(id: string, input: {
   amountCents: number; description?: string | undefined; expirationSeconds: number;
 }) {
   const lookup = await readJson<{ data: Array<{ id: string }> }>(
-    await call(id, "/v3/customers?email=" + encodeURIComponent(input.email))
+    await call(id, "/v3/customers?email=" + encodeURIComponent(input.email)),
+    "cliente-busca",
   );
   let customer = lookup.data?.[0];
   if (!customer) {
@@ -56,7 +72,7 @@ export async function createPixCharge(id: string, input: {
         name: input.name, email: input.email, cpfCnpj: input.document,
         externalReference: input.externalReference,
       }),
-    }));
+    }), "cliente-criar");
   }
 
   const dueDate = new Date(Date.now() + input.expirationSeconds * 1000).toISOString().slice(0, 10);
@@ -67,14 +83,14 @@ export async function createPixCharge(id: string, input: {
       dueDate, description: input.description?.slice(0, 500),
       externalReference: input.externalReference,
     }),
-  }));
+  }), "cobranca");
 
-  const pix = await readJson<PixCode>(await call(id, "/v3/payments/" + encodeURIComponent(payment.id) + "/pixQrCode"));
+  const pix = await readJson<PixCode>(await call(id, "/v3/payments/" + encodeURIComponent(payment.id) + "/pixQrCode"), "pixQrCode");
   return { paymentId: payment.id, pix, payment };
 }
 
 export async function getPayment(id: string, paymentId: string) {
-  return readJson<Payment>(await call(id, "/v3/payments/" + encodeURIComponent(paymentId)));
+  return readJson<Payment>(await call(id, "/v3/payments/" + encodeURIComponent(paymentId)), "consulta-cobranca");
 }
 
 export async function getWebhookSecret(id: string) {
