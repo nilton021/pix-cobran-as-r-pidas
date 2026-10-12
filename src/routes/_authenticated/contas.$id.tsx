@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft, QrCode } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -122,7 +122,7 @@ function Conta() {
           <h1 className="text-2xl font-extrabold">{account.data?.name ?? "…"}</h1>
           {account.data && <p className="text-sm text-muted-foreground">{account.data.document_type} {maskDocument(account.data.document)} · {account.data.email}</p>}
         </div>
-        <Button onClick={openNew} disabled={integrations.isLoading || activeIntegrations.length === 0}><Plus className="h-4 w-4" /> Nova cobrança</Button>
+        <Button size="lg" className="min-h-12 gap-2 px-5 text-sm font-extrabold shadow-md" onClick={openNew} disabled={integrations.isLoading || activeIntegrations.length === 0}><QrCode className="h-5 w-5" /> GERAR COBRANÇA PIX</Button>
       </div>
       <div className="divide-y rounded-xl border bg-card">
         {charges.data?.length === 0 && <p className="p-6 text-center text-sm text-muted-foreground">Nenhuma cobrança para esta conta.</p>}
