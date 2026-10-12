@@ -29,6 +29,31 @@ type Integration = {
   updated_at: string;
 };
 
+const PROVIDER_BRANDS: Record<string, { mark: string; color: string; textColor: string }> = {
+  PICPAY: { mark: "P", color: "#21C25E", textColor: "#052E16" },
+  ASAAS: { mark: "A", color: "#5B2BE0", textColor: "#FFFFFF" },
+  INTER: { mark: "inter", color: "#FF7A00", textColor: "#FFFFFF" },
+  EFI: { mark: "efí", color: "#6B3FA0", textColor: "#FFFFFF" },
+  MERCADOPAGO: { mark: "MP", color: "#009EE3", textColor: "#FFFFFF" },
+  NUBANK: { mark: "nu", color: "#820AD1", textColor: "#FFFFFF" },
+  ITAU: { mark: "itaú", color: "#EC7000", textColor: "#FFFFFF" },
+  SANTANDER: { mark: "S", color: "#CC0000", textColor: "#FFFFFF" },
+  BRADESCO: { mark: "B", color: "#CC092F", textColor: "#FFFFFF" },
+};
+
+function ProviderBrand({ provider, size = "md" }: { provider: string; size?: "sm" | "md" }) {
+  const brand = PROVIDER_BRANDS[provider] ?? { mark: provider.slice(0, 1), color: "#64748B", textColor: "#FFFFFF" };
+  return (
+    <span
+      aria-hidden="true"
+      className={"inline-flex shrink-0 items-center justify-center rounded-lg font-extrabold " + (size === "sm" ? "h-8 w-8 text-xs" : "h-11 w-11 text-sm")}
+      style={{ backgroundColor: brand.color, color: brand.textColor }}
+    >
+      {brand.mark}
+    </span>
+  );
+}
+
 function Config() {
   const queryClient = useQueryClient();
   const load = useServerFn(getPaymentSettings);
@@ -196,7 +221,7 @@ function Config() {
               return (
                 <div key={item.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3">
                   <div className="min-w-0">
-                    <div className="font-semibold">{item.display_name}</div>
+                    <div className="flex items-center gap-2"><ProviderBrand provider={item.provider} size="sm" /><span className="font-semibold">{item.display_name}</span></div>
                     <div className="text-xs text-muted-foreground">
                       {item.provider} · {item.environment === "PRODUCTION" ? "Produção" : "Sandbox"}
                     </div>
@@ -274,7 +299,7 @@ function Config() {
                 }}
                 className={"rounded-lg border p-3 text-left " + (provider === item.id ? "border-primary bg-muted" : "")}
               >
-                <div className="font-semibold">{item.name}</div>
+                <div className="flex items-center gap-3"><ProviderBrand provider={item.id} /><span className="font-semibold">{item.name}</span></div>
                 <div className="text-xs text-muted-foreground">
                   {existingStatus ?? (item.status === "available" ? "Disponível" : "Em breve")}
                 </div>
