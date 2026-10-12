@@ -8,6 +8,8 @@ import { AccountDialog } from "@/components/AccountDialog";
 import { maskDocument } from "@/lib/format";
 import type { Tables } from "@/integrations/supabase/types";
 
+const ASAAS_REFERRAL_URL = "https://www.asaas.com/r/58d45d5c-20bb-4d9d-b4b5-12bdf4f73233";
+
 export const Route = createFileRoute("/_authenticated/contas/")({
   head: () => ({
     meta: [
@@ -40,6 +42,25 @@ function Contas() {
         </div>
         <Button onClick={() => { setEditing(null); setOpen(true); }}><Plus className="h-4 w-4" /> Nova conta</Button>
       </div>
+
+      <a
+        href={ASAAS_REFERRAL_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Abrir cadastro do Asaas pelo link de indicação"
+        title="Cadastrar-se no Asaas pelo link de indicação"
+        className="flex items-center gap-3 rounded-xl border bg-card p-4 transition-colors hover:border-primary hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <span aria-hidden="true" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#5B2BE0] text-xl font-extrabold tracking-tight text-white">
+          A
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block font-bold">Asaas</span>
+          <span className="block text-sm text-muted-foreground">Toque na marca para abrir o cadastro pelo link de indicação.</span>
+        </span>
+        <span className="text-sm font-semibold text-primary">Cadastrar ↗</span>
+      </a>
+
       <div className="divide-y rounded-xl border bg-card">
         {isLoading && <p className="p-6 text-sm text-muted-foreground">Carregando…</p>}
         {data?.length === 0 && (
