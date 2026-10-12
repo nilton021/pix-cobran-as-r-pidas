@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Plus, Pencil, ChevronRight, ExternalLink } from "lucide-react";
+import { Plus, Pencil, ChevronRight, ExternalLink, QrCode } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { AccountDialog } from "@/components/AccountDialog";
@@ -109,14 +109,21 @@ function Contas() {
           </div>
         )}
         {data?.map((a) => (
-          <div key={a.id} className="flex items-center gap-2 p-4">
+          <div key={a.id} className="flex flex-wrap items-center gap-3 p-4">
             <Link to="/contas/$id" params={{ id: a.id }} className="min-w-0 flex-1">
               <p className="truncate font-semibold">{a.name}</p>
               <p className="truncate text-xs text-muted-foreground">{a.document_type} {maskDocument(a.document)} · {a.email}</p>
-              <p className="mt-1 text-xs text-primary">Abrir conta e gerar cobrança Pix</p>
             </Link>
-            <Button variant="ghost" size="icon" aria-label="Editar" onClick={() => { setEditing(a); setOpen(true); }}><Pencil className="h-4 w-4" /></Button>
-            <Link to="/contas/$id" params={{ id: a.id }} aria-label="Abrir conta"><ChevronRight className="h-5 w-5 text-muted-foreground" /></Link>
+            <Button variant="ghost" size="icon" aria-label={"Editar conta " + a.name} onClick={() => { setEditing(a); setOpen(true); }}><Pencil className="h-4 w-4" /></Button>
+            <Link
+              to="/contas/$id"
+              params={{ id: a.id }}
+              aria-label={"Gerar cobrança Pix para " + a.name}
+              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-extrabold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:ml-auto sm:w-auto"
+            >
+              <QrCode className="h-5 w-5" aria-hidden="true" />
+              GERAR COBRANÇA PIX
+            </Link>
           </div>
         ))}
       </div>
