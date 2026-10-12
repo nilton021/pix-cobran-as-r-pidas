@@ -30,6 +30,7 @@ async function call(id: string, path: string, init: RequestInit = {}) {
   const headers: Record<string, string> = {
     accept: "application/json",
     "content-type": "application/json",
+    "user-agent": "PixCobrancasRapidas/1.0",
   };
   headers["access_" + "token"] = cfg.api_key;
   return fetch(origin(cfg.environment) + path, { ...init, headers: { ...headers, ...(init.headers ?? {}) } });
