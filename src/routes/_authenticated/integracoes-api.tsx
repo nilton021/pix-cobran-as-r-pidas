@@ -345,7 +345,7 @@ function IntegracoesApiPage() {
         </TabsContent>
       </Tabs>
 
-      <Dialog open={Boolean(newKey)} onOpenChange={(open) => { if (!open) setNewKey(null); }}>
+      <Dialog open={Boolean(newKey)} onOpenChange={(open) => { if (!open) { setNewKey(null); createMutation.reset(); } }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Copie sua nova chave</DialogTitle>
