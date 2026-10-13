@@ -60,4 +60,27 @@ describe("phase 19 security isolation contracts", () => {
     expect(foundation).toContain('create policy "own charges select"');
     expect(foundation).toContain("where a.id = charges.account_id and a.owner_id = auth.uid()");
   });
+
+  
+  it("scopes API key management to accounts visible to the authenticated user", () => {
+    const apiKeys = readRepoFile("src/lib/api-keys.functions.ts");
+    const createHandler = apiKeys.slice(apiKeys.indexOf("export const createApiKey"), apiKeys.indexOf("export const revokeApiKey"));
+    const revokeHandler = apiKeys.slice(apiKeys.indexOf("export const revokeApiKey"), apiKeys.indexOf("export const listApiKeys"));
+    const listHandler = apiKeys.slice(apiKeys.indexOf("export const listApiKeys"));
+
+    expect(createHandler).toContain('.from("accounts")');
+    expect(createHandler).toContain('.eq("id", data.accountId)');
+    expect(createHandler.indexOf("Conta não encontrada")).toBeLessThan(createHandler.indexOf("supabaseAdmin"));
+    expect(revokeHandler).toContain('.from("api_keys")');
+    expect(revokeHandler).toContain('.maybeSingle()');
+    expect(revokeHandler).toContain('throw new Error("API key não encontrada")');
+    expect(revokeHandler.indexOf("API key não encontrada")).toBeLessThan(revokeHandler.indexOf("supabaseAdmin"));
+    expect(listHandler).toContain('.eq("account_id", data.accountId)');
+  });
+
+  it("scopes API audit history to the requested account", () => {
+    const audit = readRepoFile("src/lib/api-audit.functions.ts");
+    expect(audit).toContain('.eq("account_id", data.accountId)');
+    expect(audit).toContain("requireSupabaseAuth");
+  });
 });
