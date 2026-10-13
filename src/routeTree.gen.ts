@@ -103,8 +103,6 @@ export interface FileRoutesByFullPath {
   '/como-funciona': typeof ComoFuncionaRoute
   '/login': typeof LoginRoute
   '/pagar/$id': typeof PagarIdRoute
-  '/pagar/$id': typeof PagarIdRoute
-  '/pagar/$id': typeof PagarIdRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/cobrancas/$id': typeof AuthenticatedCobrancasIdRoute
   '/contas/$id': typeof AuthenticatedContasIdRoute
@@ -118,6 +116,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/como-funciona': typeof ComoFuncionaRoute
   '/login': typeof LoginRoute
+  '/pagar/$id': typeof PagarIdRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/': typeof AuthenticatedIndexRoute
   '/cobrancas/$id': typeof AuthenticatedCobrancasIdRoute
@@ -134,6 +133,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/como-funciona': typeof ComoFuncionaRoute
   '/login': typeof LoginRoute
+  '/pagar/$id': typeof PagarIdRoute
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/cobrancas/$id': typeof AuthenticatedCobrancasIdRoute
