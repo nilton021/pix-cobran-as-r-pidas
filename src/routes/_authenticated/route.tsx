@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, redirect, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { LayoutDashboard, Users, Settings, LogOut, QrCode } from "lucide-react";
+import { LayoutDashboard, Users, Settings, LogOut, QrCode, Code2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 
@@ -30,6 +30,7 @@ const nav = [
   { to: "/", label: "Painel", icon: LayoutDashboard },
   { to: "/contas", label: "Contas", icon: Users },
   { to: "/configuracoes", label: "Ajustes", icon: Settings },
+  { to: "/integracoes-api", label: "Integrações & API", icon: Code2 },
 ] as const;
 
 function Layout() {
@@ -62,7 +63,7 @@ function Layout() {
         </div>
       </header>
       <main className="mx-auto max-w-5xl px-4 py-6"><Outlet /></main>
-      <nav className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-3 border-t bg-card md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-4 border-t bg-card md:hidden">
         {nav.map((n) => (
           <Link key={n.to} to={n.to} activeOptions={{ exact: n.to === "/" }}
             className="flex flex-col items-center gap-0.5 py-2 text-xs text-muted-foreground"
