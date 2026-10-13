@@ -1,6 +1,6 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
-type Payment = { id: string; status?: string; externalReference?: string };
+type Payment = { id: string; status?: string; externalReference?: string; value?: number };
 type PixCode = { encodedImage?: string; payload?: string; expirationDate?: string };
 
 async function getConfig(id: string) {
