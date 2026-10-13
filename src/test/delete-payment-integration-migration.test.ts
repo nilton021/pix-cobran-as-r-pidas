@@ -26,11 +26,15 @@ describe("0021 delete payment integration migration", () => {
   it("blocks deletion when this integration has PENDING charges", () => {
     const sql = readMigration();
 
-    expect(sql).toMatch(/from public\.charges c[\s\S]*?where c\.payment_integration_id = p_integration_id[\s\S]*?and c\.status = 'PENDING'/);
+    expect(sql).toMatch(
+      /from public\.charges c[\s\S]*?where c\.payment_integration_id = p_integration_id[\s\S]*?and c\.status = 'PENDING'/,
+    );
     expect(sql).toContain(
       "Existem cobranças pendentes nesta integração. Cancele-as ou aguarde o pagamento antes de excluir.",
     );
-    expect(sql).toMatch(/if exists \([\s\S]*?raise exception 'Existem cobranças pendentes nesta integração[\s\S]*?end if;/);
+    expect(sql).toMatch(
+      /if exists \([\s\S]*?raise exception 'Existem cobranças pendentes nesta integração[\s\S]*?end if;/,
+    );
   });
 
   it("uses the exact integration-specific Vault secret prefix", () => {
@@ -45,21 +49,31 @@ describe("0021 delete payment integration migration", () => {
     const deletes = sql.match(/\bdelete\s+from\b/gi) ?? [];
 
     expect(deletes).toHaveLength(1);
-    expect(sql).toMatch(/delete from vault\.secrets s[\s\S]*?left\(s\.name, length\(v_prefix\)\) = v_prefix/);
+    expect(sql).toMatch(
+      /delete from vault\.secrets s[\s\S]*?left\(s\.name, length\(v_prefix\)\) = v_prefix/,
+    );
   });
 
   it("preserves the integration row and marks it INACTIVE", () => {
     const sql = readMigration();
 
     expect(sql).not.toMatch(/delete\s+from\s+public\.payment_integrations/i);
-    expect(sql).toMatch(/update public\.payment_integrations[\s\S]*?set status = 'INACTIVE'/);
+    expect(sql).toMatch(
+      /update public\.payment_integrations[\s\S]*?set status = 'INACTIVE'/,
+    );
   });
 
   it("grants function execution only to authenticated", () => {
     const sql = readMigration();
 
-    expect(sql).toMatch(/revoke all on function public\.delete_payment_integration\(uuid\) from public, anon;/i);
-    expect(sql).toMatch(/grant execute on function public\.delete_payment_integration\(uuid\) to authenticated;/i);
-    expect(sql).not.toMatch(/grant execute on function public\.delete_payment_integration\(uuid\) to (public|anon|service_role)/i);
+    expect(sql).toMatch(
+      /revoke all on function public\.delete_payment_integration\(uuid\) from public, anon;/i,
+    );
+    expect(sql).toMatch(
+      /grant execute on function public\.delete_payment_integration\(uuid\) to authenticated;/i,
+    );
+    expect(sql).not.toMatch(
+      /grant execute on function public\.delete_payment_integration\(uuid\) to (public|anon|service_role)/i,
+    );
   });
 });
