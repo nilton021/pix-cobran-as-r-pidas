@@ -27,10 +27,10 @@ export const Route = createFileRoute("/_authenticated")({
 });
 
 const nav = [
-  { to: "/", label: "Painel", icon: LayoutDashboard },
-  { to: "/contas", label: "Contas", icon: Users },
-  { to: "/configuracoes", label: "Ajustes", icon: Settings },
-  { to: "/integracoes-api", label: "Integrações & API", icon: Code2 },
+  { to: "/", label: "Painel", mobileLabel: "Painel", icon: LayoutDashboard },
+  { to: "/contas", label: "Contas", mobileLabel: "Contas", icon: Users },
+  { to: "/configuracoes", label: "Ajustes", mobileLabel: "Ajustes", icon: Settings },
+  { to: "/integracoes-api", label: "Integrações & API", mobileLabel: "API", icon: Code2 },
 ] as const;
 
 function Layout() {
@@ -68,7 +68,7 @@ function Layout() {
           <Link key={n.to} to={n.to} activeOptions={{ exact: n.to === "/" }}
             className="flex flex-col items-center gap-0.5 py-2 text-xs text-muted-foreground"
             activeProps={{ className: "text-primary" }}>
-            <n.icon className="h-5 w-5" />{n.label}
+            <n.icon className="h-5 w-5" />{n.mobileLabel}
           </Link>
         ))}
       </nav>
