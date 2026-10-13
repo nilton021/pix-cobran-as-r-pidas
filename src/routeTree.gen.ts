@@ -111,7 +111,6 @@ export interface FileRoutesByFullPath {
   '/pagar/$id': typeof PagarIdRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/integracoes-api': typeof AuthenticatedIntegracoesApiRoute
-  '/integracoes-api': typeof AuthenticatedIntegracoesApiRoute
   '/cobrancas/$id': typeof AuthenticatedCobrancasIdRoute
   '/contas/$id': typeof AuthenticatedContasIdRoute
   '/api/public/efi-webhook': typeof ApiPublicEfiWebhookRoute
@@ -126,6 +125,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/pagar/$id': typeof PagarIdRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
+  '/integracoes-api': typeof AuthenticatedIntegracoesApiRoute
   '/': typeof AuthenticatedIndexRoute
   '/cobrancas/$id': typeof AuthenticatedCobrancasIdRoute
   '/contas/$id': typeof AuthenticatedContasIdRoute
@@ -163,7 +163,6 @@ export interface FileRouteTypes {
     | '/pagar/$id'
     | '/configuracoes'
     | '/integracoes-api'
-    | '/integracoes-api'
     | '/cobrancas/$id'
     | '/contas/$id'
     | '/api/public/efi-webhook'
@@ -178,6 +177,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/pagar/$id'
     | '/configuracoes'
+    | '/integracoes-api'
     | '/'
     | '/cobrancas/$id'
     | '/contas/$id'
