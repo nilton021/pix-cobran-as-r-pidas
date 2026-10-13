@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { CheckCircle2, Copy, Clock } from "lucide-react";
+import { CheckCircle2, Copy, Clock, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -25,6 +25,34 @@ function fmt(s: number) {
 export function ChargeView({ charge }: { charge: Tables<"charges"> }) {
   const left = useCountdown(charge.expires_at);
   const showQr = charge.status === "PENDING" && charge.qr_code && (left === null || left > 0);
+
+  const shareCharge = async () => {
+    const message = [
+      "Cobrança Pix",
+      `Valor: ${formatBRL(charge.amount_cents)}`,
+      charge.description ? `Descrição: ${charge.description}` : null,
+      "Para pagar, abra o aplicativo do seu banco, escolha Pix Copia e Cola e cole o código abaixo:",
+      charge.qr_code,
+      charge.expires_at ? `Válida até: ${formatDateTime(charge.expires_at)}` : null,
+    ].filter(Boolean).join("\n\n");
+
+    try {
+      if (typeof navigator.share === "function") {
+        await navigator.share({ title: "Cobrança Pix", text: message });
+      } else {
+        await navigator.clipboard.writeText(message);
+        toast.success("Dados da cobrança copiados. Agora você pode enviar pelo WhatsApp ou outro aplicativo.");
+      }
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") return;
+      try {
+        await navigator.clipboard.writeText(message);
+        toast.success("Dados da cobrança copiados. Agora você pode enviar pelo WhatsApp ou outro aplicativo.");
+      } catch {
+        toast.error("Não foi possível compartilhar a cobrança neste dispositivo.");
+      }
+    }
+  };
 
   if (charge.status === "PAID") {
     return (
@@ -62,9 +90,15 @@ export function ChargeView({ charge }: { charge: Tables<"charges"> }) {
             <p className="mb-1 text-xs font-medium text-muted-foreground">Pix copia e cola</p>
             <p className="break-all font-mono text-xs">{charge.qr_code}</p>
           </div>
-          <Button className="w-full" onClick={() => { navigator.clipboard.writeText(charge.qr_code!); toast.success("Código copiado"); }}>
-            <Copy className="h-4 w-4" /> Copiar código
-          </Button>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <Button className="w-full" onClick={() => { navigator.clipboard.writeText(charge.qr_code!); toast.success("Código Pix copiado"); }}>
+              <Copy className="h-4 w-4" /> Copiar código Pix
+            </Button>
+            <Button type="button" variant="outline" className="w-full" onClick={shareCharge}>
+              <Share2 className="h-4 w-4" /> Enviar cobrança
+            </Button>
+          </div>
+          <p className="text-center text-xs text-muted-foreground">Você pode enviar os dados pelo WhatsApp ou outro aplicativo. O pagador conclui o pagamento no próprio banco.</p>
           <p className="text-center text-xs text-muted-foreground">Aguardando pagamento… o status atualiza sozinho.</p>
         </>
       ) : charge.status === "ERROR" ? (
