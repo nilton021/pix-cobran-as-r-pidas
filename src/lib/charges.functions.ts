@@ -6,7 +6,7 @@ import type { TablesUpdate } from "@/integrations/supabase/types";
 const createSchema = z.object({
   accountId: z.string().uuid(),
   integrationId: z.string().uuid(),
-  amountCents: z.number().int().min(1),
+  amountCents: z.number().int().min(500, "O valor mínimo para cobrança é R$ 5,00."),
   description: z.string().max(140).optional(),
   expirationSeconds: z.number().int().min(60).max(86400).default(900),
 });
