@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Wallet, Hourglass, CheckCircle2 } from "lucide-react";
+import { Wallet, Hourglass, CheckCircle2, EyeOff, Eye } from "lucide-react";
+import { useState } from "react";
+import { useHiddenCharges } from "@/hooks/use-hidden-charges";
 import { supabase } from "@/integrations/supabase/client";
 import { StatusBadge } from "@/components/StatusBadge";
 import { formatBRL, formatDateTime } from "@/lib/format";
@@ -28,6 +30,8 @@ function spStart(kind: "day" | "month") {
 
 function Dashboard() {
   useChargesRealtime();
+  const { hiddenIds, hideCharge, restoreCharge } = useHiddenCharges();
+  const [showHidden, setShowHidden] = useState(false);
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard"],
     queryFn: async () => {
@@ -35,7 +39,7 @@ function Dashboard() {
         supabase.from("charges").select("amount_cents").eq("status", "PAID").gte("paid_at", spStart("month")),
         supabase.from("charges").select("id", { count: "exact", head: true }).eq("status", "PENDING"),
         supabase.from("charges").select("id", { count: "exact", head: true }).eq("status", "PAID").gte("paid_at", spStart("day")),
-        supabase.from("charges").select("*, accounts(name)").order("created_at", { ascending: false }).limit(10),
+        supabase.from("charges").select("*, accounts(name)").order("created_at", { ascending: false }).limit(100),
       ]);
       if (latest.error) throw latest.error;
       return {
@@ -66,22 +70,36 @@ function Dashboard() {
         ))}
       </div>
       <section>
-        <h2 className="mb-3 font-bold">Últimas cobranças</h2>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="font-bold">Últimas cobranças</h2>
+          {hiddenIds.length > 0 && <button type="button" onClick={() => setShowHidden((value) => !value)} className="inline-flex items-center gap-1 text-sm text-primary underline"><Eye className="h-4 w-4" /> {showHidden ? "Ocultar lista oculta" : `Ver ocultas (${hiddenIds.length})`}</button>}
+        </div>
         <div className="divide-y rounded-xl border bg-card">
-          {data?.latest.length === 0 && <p className="p-6 text-center text-sm text-muted-foreground">Nenhuma cobrança ainda. <Link to="/contas" className="text-primary underline">Crie uma conta</Link> para começar.</p>}
-          {data?.latest.map((c) => (
-            <Link key={c.id} to="/cobrancas/$id" params={{ id: c.id }} className="flex items-center gap-3 p-4 hover:bg-muted">
-              <div className="min-w-0 flex-1">
+          {(data?.latest ?? []).filter((c) => !hiddenIds.includes(c.id)).slice(0, 10).length === 0 && <p className="p-6 text-center text-sm text-muted-foreground">Nenhuma cobrança visível. <Link to="/contas" className="text-primary underline">Crie uma conta</Link> para começar.</p>}
+          {(data?.latest ?? []).filter((c) => !hiddenIds.includes(c.id)).slice(0, 10).map((c) => (
+            <div key={c.id} className="flex items-center gap-3 p-4 hover:bg-muted">
+              <Link to="/cobrancas/$id" params={{ id: c.id }} className="min-w-0 flex-1">
                 <p className="truncate font-semibold">{c.description || (c.accounts as { name: string } | null)?.name || "Cobrança"}</p>
                 <p className="text-xs text-muted-foreground">{(c.accounts as { name: string } | null)?.name} · {formatDateTime(c.created_at)}</p>
-              </div>
+              </Link>
               <div className="text-right">
                 <p className="font-bold tabular">{formatBRL(c.amount_cents)}</p>
                 <StatusBadge status={c.status} />
+                <button type="button" title="Ocultar somente do painel" onClick={() => hideCharge(c.id)} className="mt-1 inline-flex items-center gap-1 text-xs text-muted-foreground underline"><EyeOff className="h-3 w-3" /> Ocultar</button>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
+        {showHidden && <div className="mt-3 rounded-xl border border-dashed">
+          <p className="border-b p-3 text-sm font-semibold">Ocultas neste navegador — não foram excluídas do banco nem canceladas</p>
+          {(data?.latest ?? []).filter((c) => hiddenIds.includes(c.id)).map((c) => (
+            <div key={c.id} className="flex items-center gap-3 border-b p-3 last:border-b-0">
+              <div className="min-w-0 flex-1"><p className="truncate font-medium">{c.description || (c.accounts as { name: string } | null)?.name || "Cobrança"}</p><p className="text-xs text-muted-foreground">{formatBRL(c.amount_cents)} · {formatDateTime(c.created_at)}</p></div>
+              <button type="button" onClick={() => restoreCharge(c.id)} className="text-sm text-primary underline">Mostrar</button>
+            </div>
+          ))}
+          {hiddenIds.some((id) => !(data?.latest ?? []).some((c) => c.id === id)) && <p className="p-3 text-xs text-muted-foreground">Algumas cobranças ocultas não estão entre as 100 mais recentes carregadas. A preferência pode ser removida ao restaurá-las na lista da conta.</p>}
+        </div>}
       </section>
     </div>
   );
