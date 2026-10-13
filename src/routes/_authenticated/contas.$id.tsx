@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
-import { ArrowLeft, QrCode } from "lucide-react";
+import { ArrowLeft, QrCode, EyeOff, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Sparkles } from "lucide-react";
 import { formatBRL, formatDateTime, maskDocument, maskMoney } from "@/lib/format";
 import { useChargesRealtime } from "@/hooks/use-charge-realtime";
+import { useHiddenCharges } from "@/hooks/use-hidden-charges";
 
 export const Route = createFileRoute("/_authenticated/contas/$id")({
   head: () => ({
@@ -45,6 +46,8 @@ function Conta() {
   const [integrationId, setIntegrationId] = useState("");
   const [loading, setLoading] = useState(false);
   const [createdId, setCreatedId] = useState<string | null>(null);
+  const { hiddenIds, hideCharge, restoreCharge } = useHiddenCharges();
+  const [showHidden, setShowHidden] = useState(false);
 
   const account = useQuery({
     queryKey: ["account", id],
@@ -125,18 +128,31 @@ function Conta() {
         </div>
         <Button size="lg" className="min-h-12 gap-2 px-5 text-sm font-extrabold shadow-md" onClick={openNew} disabled={integrations.isLoading || activeIntegrations.length === 0}><QrCode className="h-5 w-5" /> GERAR COBRANÇA PIX</Button>
       </div>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="font-bold">Cobranças</h2>
+        {hiddenIds.some((hiddenId) => charges.data?.some((item) => item.id === hiddenId)) && <button type="button" onClick={() => setShowHidden((value) => !value)} className="inline-flex items-center gap-1 text-sm text-primary underline"><Eye className="h-4 w-4" /> {showHidden ? "Ocultar lista oculta" : "Ver ocultas"}</button>}
+      </div>
       <div className="divide-y rounded-xl border bg-card">
-        {charges.data?.length === 0 && <p className="p-6 text-center text-sm text-muted-foreground">Nenhuma cobrança para esta conta.</p>}
-        {charges.data?.map((c) => (
-          <Link key={c.id} to="/cobrancas/$id" params={{ id: c.id }} className="flex items-center gap-3 p-4 hover:bg-muted">
-            <div className="min-w-0 flex-1">
+        {(charges.data ?? []).filter((item) => !hiddenIds.includes(item.id)).length === 0 && <p className="p-6 text-center text-sm text-muted-foreground">Nenhuma cobrança visível para esta conta.</p>}
+        {(charges.data ?? []).filter((item) => !hiddenIds.includes(item.id)).map((c) => (
+          <div key={c.id} className="flex items-center gap-3 p-4 hover:bg-muted">
+            <Link to="/cobrancas/$id" params={{ id: c.id }} className="min-w-0 flex-1">
               <p className="truncate font-semibold">{c.description || "Cobrança Pix"}</p>
               <p className="text-xs text-muted-foreground">{formatDateTime(c.created_at)}</p>
-            </div>
-            <div className="text-right"><p className="font-bold tabular">{formatBRL(c.amount_cents)}</p><StatusBadge status={c.status} /></div>
-          </Link>
+            </Link>
+            <div className="text-right"><p className="font-bold tabular">{formatBRL(c.amount_cents)}</p><StatusBadge status={c.status} /><button type="button" title="Ocultar somente da interface" onClick={() => hideCharge(c.id)} className="mt-1 inline-flex items-center gap-1 text-xs text-muted-foreground underline"><EyeOff className="h-3 w-3" /> Ocultar</button></div>
+          </div>
         ))}
       </div>
+      {showHidden && <div className="rounded-xl border border-dashed">
+        <p className="border-b p-3 text-sm font-semibold">Ocultas neste navegador — continuam no banco e no provedor</p>
+        {(charges.data ?? []).filter((item) => hiddenIds.includes(item.id)).map((c) => (
+          <div key={c.id} className="flex items-center gap-3 border-b p-3 last:border-b-0">
+            <div className="min-w-0 flex-1"><p className="truncate font-medium">{c.description || "Cobrança Pix"}</p><p className="text-xs text-muted-foreground">{formatBRL(c.amount_cents)} · {formatDateTime(c.created_at)}</p></div>
+            <button type="button" onClick={() => restoreCharge(c.id)} className="text-sm text-primary underline">Mostrar</button>
+          </div>
+        ))}
+      </div>}
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[95vh] overflow-y-auto">
