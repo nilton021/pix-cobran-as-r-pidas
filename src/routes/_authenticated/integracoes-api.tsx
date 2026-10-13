@@ -299,8 +299,11 @@ function IntegracoesApiPage() {
               </section>
               <section className="space-y-2">
                 <h3 className="font-semibold">Criar cobrança — planejado</h3>
-                <pre className="overflow-x-auto rounded-lg bg-muted p-3 text-xs"><code>{JSON.stringify({ method: "POST", path: "/api/v2/charges", body: { amount: 125.5, externalReference: "pedido-84721" }, response: { id: "id-da-cobranca", status: "PENDING", payment_url: "link-publico-de-pagamento" } }, null, 2)}</code></pre>
+                <pre className="overflow-x-auto rounded-lg bg-muted p-3 text-xs"><code>{JSON.stringify({ method: "POST", path: "/api/v2/charges", body: { amountCents: 12550, externalReference: "pedido-84721" }, response: { id: "id-da-cobranca", status: "PENDING", payment_url: "link-publico-de-pagamento" } }, null, 2)}</code></pre>
               </section>
+              <p className="rounded-lg border p-3 text-sm text-muted-foreground">
+                Importante: com uma integração PicPay ativa, as chaves criadas aqui já podem autenticar chamadas compatíveis à API v1, incluindo <code>/api/v1/charges</code>. Isso não significa que a API v2 esteja disponível.
+              </p>
               <div className="flex items-start gap-2 rounded-lg border p-3 text-sm text-muted-foreground">
                 <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />
                 <p>O contrato final, a consulta de status, as regras de valor mínimo, idempotência e os erros serão publicados após implementação, testes e aprovação.</p>
