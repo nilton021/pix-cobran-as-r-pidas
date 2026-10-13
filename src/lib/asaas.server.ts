@@ -94,6 +94,45 @@ export async function getPayment(id: string, paymentId: string) {
   return readJson<Payment>(await call(id, "/v3/payments/" + encodeURIComponent(paymentId)), "consulta-cobranca");
 }
 
+export type CancellationResult = "CANCELED" | "PAID";
+
+function isPaidStatus(status?: string) {
+  return status === "RECEIVED" || status === "CONFIRMED";
+}
+
+/**
+ * Cancela uma cobrança Asaas somente após consultar seu estado remoto.
+ * Se a resposta do DELETE não confirmar o cancelamento, a função consulta
+ * novamente e falha sem presumir que a cobrança foi cancelada.
+ */
+export async function cancelPayment(id: string, paymentId: string): Promise<CancellationResult> {
+  const current = await getPayment(id, paymentId);
+  if (isPaidStatus(current.status)) return "PAID";
+  if (current.status === "DELETED") return "CANCELED";
+
+  const response = await call(id, "/v3/payments/" + encodeURIComponent(paymentId), {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    await readJson<Payment>(response, "cancelamento-cobranca");
+  } else {
+    const body = await response.text();
+    if (body) {
+      let deleted: Payment | undefined;
+      try { deleted = JSON.parse(body) as Payment; } catch { /* confirmar via GET abaixo */ }
+      if (isPaidStatus(deleted?.status)) return "PAID";
+      if (deleted?.status === "DELETED") return "CANCELED";
+    }
+  }
+
+  // A resposta do DELETE pode não conter o estado final. Nunca inferir sucesso.
+  const confirmed = await getPayment(id, paymentId);
+  if (isPaidStatus(confirmed.status)) return "PAID";
+  if (confirmed.status === "DELETED") return "CANCELED";
+  throw new Error("O Asaas não confirmou o cancelamento da cobrança");
+}
+
 export async function getWebhookSecret(id: string) {
   const cfg = await getConfig(id);
   if (!cfg.webhook_secret) throw new Error("Webhook Asaas não configurado");
