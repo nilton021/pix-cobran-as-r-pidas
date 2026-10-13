@@ -32,7 +32,7 @@ export const Route = createFileRoute("/_authenticated/contas/$id")({
   component: Conta,
 });
 
-const form = z.object({ amountCents: z.number().int().min(1, "Informe um valor"), description: z.string().max(140).optional() });
+const form = z.object({ amountCents: z.number().int().min(500, "O valor mínimo para cobrança é R$ 5,00."), description: z.string().max(140).optional() });
 
 function Conta() {
   const { id } = Route.useParams();
@@ -76,6 +76,7 @@ function Conta() {
   const selectedIntegrationId = activeIntegrations.some((item) => item.id === integrationId)
     ? integrationId
     : activeIntegrations[0]?.id ?? "";
+  const selectedIntegration = activeIntegrations.find((item) => item.id === selectedIntegrationId);
   const created = charges.data?.find((c) => c.id === createdId);
 
   const genDesc = useServerFn(generatePixDescription);
@@ -168,7 +169,9 @@ function Conta() {
                 </div>
               )}
               <div className="space-y-1.5"><Label>Valor</Label>
-                <Input inputMode="numeric" placeholder="R$ 0,00" value={money.display} onChange={(e) => setMoney(maskMoney(e.target.value))} className="text-lg font-bold" />
+                <Input inputMode="numeric" placeholder="R$ 5,00 ou mais" value={money.display} onChange={(e) => setMoney(maskMoney(e.target.value))} className="text-lg font-bold" />
+                <p className="text-sm text-muted-foreground">Valor mínimo para cobrança: <strong>R$ 5,00</strong>.</p>
+                {selectedIntegration?.provider === "ASAAS" && <p className="text-sm text-muted-foreground">Taxa bancária Asaas: <strong>R$ 0,99 por cobrança</strong>.</p>}
               </div>
               <div className="space-y-2 rounded-xl border bg-muted/40 p-3">
                 <p className="flex items-center gap-1.5 text-sm font-semibold"><Sparkles className="h-4 w-4 text-primary" /> Gerar descrição com IA</p>
