@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import {
   Activity,
   BookOpen,
-  Check,
   CircleAlert,
   Clock3,
   Code2,
@@ -240,7 +239,7 @@ function IntegracoesApiPage() {
                 </label>
                 <label className="grid gap-1.5 text-sm">
                   <span className="font-medium">Expiração (opcional)</span>
-                  <Input type="datetime-local" value={expiresAt} onChange={(event) => setExpiresAt(event.target.value)} min={new Date().toISOString().slice(0, 16)} />
+                  <Input type="datetime-local" value={expiresAt} onChange={(event) => setExpiresAt(event.target.value)} />
                 </label>
                 <Button type="submit" disabled={!accountId || !keyName.trim() || createMutation.isPending}>
                   <Plus className="mr-2 h-4 w-4" />{createMutation.isPending ? "Criando..." : "Criar chave"}
