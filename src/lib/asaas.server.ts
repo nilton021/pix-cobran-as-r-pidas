@@ -116,17 +116,27 @@ export async function cancelPayment(id: string, paymentId: string): Promise<Canc
 
   if (!response.ok) {
     await readJson<Payment>(response, "cancelamento-cobranca");
-  } else {
-    const body = await response.text();
-    if (body) {
-      let deleted: Payment | undefined;
-      try { deleted = JSON.parse(body) as Payment; } catch { /* confirmar via GET abaixo */ }
-      if (isPaidStatus(deleted?.status)) return "PAID";
-      if (deleted?.status === "DELETED") return "CANCELED";
-    }
   }
 
-  // A resposta do DELETE pode não conter o estado final. Nunca inferir sucesso.
+  // A API do Asaas confirma a remoção com { deleted: true, id }.
+  // Usamos a confirmação explícita em vez de esperar um GET posterior,
+  // que pode retornar 404 porque a cobrança já foi removida.
+  const body = await response.text();
+  if (body) {
+    let result: { deleted?: boolean; id?: string; status?: string };
+    try {
+      result = JSON.parse(body) as { deleted?: boolean; id?: string; status?: string };
+    } catch {
+      throw new Error("Resposta inválida do Asaas ao cancelar a cobrança");
+    }
+    if (result.id && result.id !== paymentId) {
+      throw new Error("O Asaas retornou um identificador divergente no cancelamento");
+    }
+    if (result.deleted === true) return "CANCELED";
+    if (isPaidStatus(result.status)) return "PAID";
+  }
+
+  // Resposta vazia ou inconclusiva: confirmar o estado sem presumir sucesso.
   const confirmed = await getPayment(id, paymentId);
   if (isPaidStatus(confirmed.status)) return "PAID";
   if (confirmed.status === "DELETED") return "CANCELED";
