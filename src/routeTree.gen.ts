@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as ComoFuncionaRouteImport } from './routes/como-funciona'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as PagarIdRouteImport } from './routes/pagar.$id'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
 import { Route as AuthenticatedCobrancasIdRouteImport } from './routes/_authenticated/cobrancas.$id'
@@ -35,6 +36,11 @@ const ComoFuncionaRoute = ComoFuncionaRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PagarIdRoute = PagarIdRouteImport.update({
+  id: '/pagar/$id',
+  path: '/pagar/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/como-funciona': typeof ComoFuncionaRoute
   '/login': typeof LoginRoute
+  '/pagar/$id': typeof PagarIdRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/cobrancas/$id': typeof AuthenticatedCobrancasIdRoute
   '/contas/$id': typeof AuthenticatedContasIdRoute
@@ -109,6 +116,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/como-funciona': typeof ComoFuncionaRoute
   '/login': typeof LoginRoute
+  '/pagar/$id': typeof PagarIdRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/': typeof AuthenticatedIndexRoute
   '/cobrancas/$id': typeof AuthenticatedCobrancasIdRoute
@@ -125,6 +133,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/como-funciona': typeof ComoFuncionaRoute
   '/login': typeof LoginRoute
+  '/pagar/$id': typeof PagarIdRoute
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/cobrancas/$id': typeof AuthenticatedCobrancasIdRoute
@@ -142,6 +151,7 @@ export interface FileRouteTypes {
     | '/'
     | '/como-funciona'
     | '/login'
+    | '/pagar/$id'
     | '/configuracoes'
     | '/cobrancas/$id'
     | '/contas/$id'
@@ -155,6 +165,7 @@ export interface FileRouteTypes {
   to:
     | '/como-funciona'
     | '/login'
+    | '/pagar/$id'
     | '/configuracoes'
     | '/'
     | '/cobrancas/$id'
@@ -170,6 +181,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/como-funciona'
     | '/login'
+    | '/pagar/$id'
     | '/_authenticated/configuracoes'
     | '/_authenticated/'
     | '/_authenticated/cobrancas/$id'
@@ -186,6 +198,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   ComoFuncionaRoute: typeof ComoFuncionaRoute
   LoginRoute: typeof LoginRoute
+  PagarIdRoute: typeof PagarIdRoute
   ApiPublicEfiWebhookRoute: typeof ApiPublicEfiWebhookRoute
   ApiPublicPicpayWebhookRoute: typeof ApiPublicPicpayWebhookRoute
   ApiPublicReconcileChargesRoute: typeof ApiPublicReconcileChargesRoute
@@ -213,6 +226,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pagar/$id': {
+      id: '/pagar/$id'
+      path: '/pagar/$id'
+      fullPath: '/pagar/$id'
+      preLoaderRoute: typeof PagarIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/': {
@@ -323,6 +343,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   ComoFuncionaRoute: ComoFuncionaRoute,
   LoginRoute: LoginRoute,
+  PagarIdRoute: PagarIdRoute,
   ApiPublicEfiWebhookRoute: ApiPublicEfiWebhookRoute,
   ApiPublicPicpayWebhookRoute: ApiPublicPicpayWebhookRoute,
   ApiPublicReconcileChargesRoute: ApiPublicReconcileChargesRoute,

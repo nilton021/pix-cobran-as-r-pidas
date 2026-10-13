@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { CheckCircle2, Copy, Clock } from "lucide-react";
+import { CheckCircle2, Copy, Clock, Share2, Link2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -25,6 +25,45 @@ function fmt(s: number) {
 export function ChargeView({ charge }: { charge: Tables<"charges"> }) {
   const left = useCountdown(charge.expires_at);
   const showQr = charge.status === "PENDING" && charge.qr_code && (left === null || left > 0);
+  const publicPaymentUrl = typeof window !== "undefined" ? `${window.location.origin}/pagar/${charge.id}` : "";
+
+  const shareCharge = async () => {
+    const message = [
+      "Cobrança Pix",
+      `Valor: ${formatBRL(charge.amount_cents)}`,
+      charge.description ? `Descrição: ${charge.description}` : null,
+      publicPaymentUrl ? `Pague por este link: ${publicPaymentUrl}` : null,
+      "Ou pague pelo Pix Copia e Cola no aplicativo do seu banco:",
+      charge.qr_code,
+      charge.expires_at ? `Válida até: ${formatDateTime(charge.expires_at)}` : null,
+    ].filter(Boolean).join("\n\n");
+
+    try {
+      if (typeof navigator.share === "function") {
+        await navigator.share({ title: "Cobrança Pix", text: message, url: publicPaymentUrl || undefined });
+      } else {
+        await navigator.clipboard.writeText(message);
+        toast.success("Link e dados da cobrança copiados. Agora você pode enviar pelo WhatsApp ou outro aplicativo.");
+      }
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") return;
+      try {
+        await navigator.clipboard.writeText(message);
+        toast.success("Link e dados da cobrança copiados. Agora você pode enviar pelo WhatsApp ou outro aplicativo.");
+      } catch {
+        toast.error("Não foi possível compartilhar a cobrança neste dispositivo.");
+      }
+    }
+  };
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(publicPaymentUrl);
+      toast.success("Link público da cobrança copiado.");
+    } catch {
+      toast.error("Não foi possível copiar o link neste dispositivo.");
+    }
+  };
 
   if (charge.status === "PAID") {
     return (
@@ -62,9 +101,18 @@ export function ChargeView({ charge }: { charge: Tables<"charges"> }) {
             <p className="mb-1 text-xs font-medium text-muted-foreground">Pix copia e cola</p>
             <p className="break-all font-mono text-xs">{charge.qr_code}</p>
           </div>
-          <Button className="w-full" onClick={() => { navigator.clipboard.writeText(charge.qr_code!); toast.success("Código copiado"); }}>
-            <Copy className="h-4 w-4" /> Copiar código
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <Button className="w-full" onClick={() => { navigator.clipboard.writeText(charge.qr_code!); toast.success("Código Pix copiado"); }}>
+              <Copy className="h-4 w-4" /> Copiar código Pix
+            </Button>
+            <Button type="button" variant="outline" className="w-full" onClick={shareCharge}>
+              <Share2 className="h-4 w-4" /> Enviar cobrança
+            </Button>
+          </div>
+          <Button type="button" variant="ghost" className="w-full" onClick={copyLink}>
+            <Link2 className="h-4 w-4" /> Copiar link da página de pagamento
           </Button>
+          <p className="text-center text-xs text-muted-foreground">Envie o link ao pagador. Ele poderá abrir esta página sem entrar na plataforma e pagar pelo aplicativo do banco.</p>
           <p className="text-center text-xs text-muted-foreground">Aguardando pagamento… o status atualiza sozinho.</p>
         </>
       ) : charge.status === "ERROR" ? (
