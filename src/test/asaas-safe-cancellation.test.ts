@@ -10,6 +10,8 @@ describe("Asaas safe cancellation contract", () => {
   it("checks the remote state before deleting and confirms the result", () => {
     const asaas = readRepoFile("src/lib/asaas.server.ts");
     expect(asaas).toContain('method: "DELETE"');
+    expect(asaas).toContain('result.deleted === true');
+    expect(asaas).toContain('result.id !== paymentId');
     expect(asaas).toContain('getPayment(id, paymentId)');
     expect(asaas).toContain('current.status === "DELETED"');
     expect(asaas).toContain('throw new Error("O Asaas não confirmou o cancelamento da cobrança")');
