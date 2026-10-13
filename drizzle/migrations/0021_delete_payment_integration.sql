@@ -1,4 +1,5 @@
 -- Remoção segura: preserva a integração como INACTIVE para manter o vínculo
+-- Bloqueia a remoção das credenciais enquanto houver cobranças PENDING associadas.
 -- com cobranças históricas, mas apaga as credenciais relacionadas do Vault.
 create or replace function public.delete_payment_integration(p_integration_id uuid)
 returns void
@@ -32,6 +33,15 @@ begin
        and a.owner_id = v_user_id
   ) then
     raise exception 'Integração não pertence ao usuário autenticado';
+  end if;
+
+  if exists (
+    select 1
+      from public.charges c
+     where c.payment_integration_id = p_integration_id
+       and c.status = 'PENDING'
+  ) then
+    raise exception 'Existem cobranças pendentes nesta integração. Cancele-as ou aguarde o pagamento antes de excluir.';
   end if;
 
   -- Não apaga o registro pai: cobranças antigas podem referenciá-lo.
