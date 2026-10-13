@@ -1,6 +1,6 @@
 -- Remoção segura: preserva a integração como INACTIVE para manter o vínculo
--- Bloqueia a remoção das credenciais enquanto houver cobranças PENDING associadas.
 -- com cobranças históricas, mas apaga as credenciais relacionadas do Vault.
+-- Bloqueia a remoção das credenciais enquanto houver cobranças PENDING associadas.
 create or replace function public.delete_payment_integration(p_integration_id uuid)
 returns void
 language plpgsql
