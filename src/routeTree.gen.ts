@@ -165,6 +165,7 @@ export interface FileRouteTypes {
   to:
     | '/como-funciona'
     | '/login'
+    | '/pagar/$id'
     | '/configuracoes'
     | '/'
     | '/cobrancas/$id'
@@ -180,6 +181,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/como-funciona'
     | '/login'
+    | '/pagar/$id'
     | '/_authenticated/configuracoes'
     | '/_authenticated/'
     | '/_authenticated/cobrancas/$id'
