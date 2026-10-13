@@ -14,4 +14,12 @@ describe("App routing", () => {
 
     expect(matches.at(-1)?.routeId).not.toBe(rootRouteId);
   });
+
+  it("registers the authenticated integrations API page", () => {
+    const router = createRouter({ routeTree, context: { queryClient: new QueryClient() } });
+
+    const matches = router.matchRoutes("/integracoes-api");
+
+    expect(matches.at(-1)?.routeId).toBe("/_authenticated/integracoes-api");
+  });
 });

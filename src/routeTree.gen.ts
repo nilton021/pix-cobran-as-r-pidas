@@ -14,6 +14,7 @@ import { Route as ComoFuncionaRouteImport } from './routes/como-funciona'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PagarIdRouteImport } from './routes/pagar.$id'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedIntegracoesApiRouteImport } from './routes/_authenticated/integracoes-api'
 import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
 import { Route as AuthenticatedCobrancasIdRouteImport } from './routes/_authenticated/cobrancas.$id'
 import { Route as AuthenticatedContasIndexRouteImport } from './routes/_authenticated/contas.index'
@@ -46,6 +47,11 @@ const PagarIdRoute = PagarIdRouteImport.update({
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedIntegracoesApiRoute = AuthenticatedIntegracoesApiRouteImport.update({
+  id: '/integracoes-api',
+  path: '/integracoes-api',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedConfiguracoesRoute =
@@ -104,6 +110,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/pagar/$id': typeof PagarIdRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
+  '/integracoes-api': typeof AuthenticatedIntegracoesApiRoute
   '/cobrancas/$id': typeof AuthenticatedCobrancasIdRoute
   '/contas/$id': typeof AuthenticatedContasIdRoute
   '/api/public/efi-webhook': typeof ApiPublicEfiWebhookRoute
@@ -118,6 +125,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/pagar/$id': typeof PagarIdRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
+  '/integracoes-api': typeof AuthenticatedIntegracoesApiRoute
   '/': typeof AuthenticatedIndexRoute
   '/cobrancas/$id': typeof AuthenticatedCobrancasIdRoute
   '/contas/$id': typeof AuthenticatedContasIdRoute
@@ -135,6 +143,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/pagar/$id': typeof PagarIdRoute
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
+  '/_authenticated/integracoes-api': typeof AuthenticatedIntegracoesApiRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/cobrancas/$id': typeof AuthenticatedCobrancasIdRoute
   '/_authenticated/contas/$id': typeof AuthenticatedContasIdRoute
@@ -153,6 +162,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/pagar/$id'
     | '/configuracoes'
+    | '/integracoes-api'
     | '/cobrancas/$id'
     | '/contas/$id'
     | '/api/public/efi-webhook'
@@ -167,6 +177,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/pagar/$id'
     | '/configuracoes'
+    | '/integracoes-api'
     | '/'
     | '/cobrancas/$id'
     | '/contas/$id'
@@ -183,6 +194,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/pagar/$id'
     | '/_authenticated/configuracoes'
+    | '/_authenticated/integracoes-api'
     | '/_authenticated/'
     | '/_authenticated/cobrancas/$id'
     | '/_authenticated/contas/$id'
@@ -240,6 +252,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/integracoes-api': {
+      id: '/_authenticated/integracoes-api'
+      path: '/integracoes-api'
+      fullPath: '/integracoes-api'
+      preLoaderRoute: typeof AuthenticatedIntegracoesApiRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/configuracoes': {
@@ -310,6 +329,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
+  AuthenticatedIntegracoesApiRoute: typeof AuthenticatedIntegracoesApiRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedCobrancasIdRoute: typeof AuthenticatedCobrancasIdRoute
   AuthenticatedContasIdRoute: typeof AuthenticatedContasIdRoute
@@ -318,6 +338,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
+  AuthenticatedIntegracoesApiRoute: AuthenticatedIntegracoesApiRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedCobrancasIdRoute: AuthenticatedCobrancasIdRoute,
   AuthenticatedContasIdRoute: AuthenticatedContasIdRoute,
