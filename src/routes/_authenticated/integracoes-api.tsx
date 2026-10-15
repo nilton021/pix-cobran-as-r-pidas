@@ -178,7 +178,7 @@ function IntegracoesApiPage() {
         <TabsList className="grid h-auto w-full grid-cols-2 gap-1 sm:inline-flex sm:w-auto">
           <TabsTrigger value="api" className="gap-2"><Code2 className="h-4 w-4" />API v2</TabsTrigger>
           <TabsTrigger value="keys" className="gap-2"><KeyRound className="h-4 w-4" />Chaves de API</TabsTrigger>
-          <TabsTrigger value="docs" className="gap-2"><BookOpen className="h-4 w-4" />Documentação</TabsTrigger>
+          <TabsTrigger value="docs" className="gap-2"><BookOpen className="h-4 w-4" />Documentação API</TabsTrigger>
           <TabsTrigger value="history" className="gap-2"><Activity className="h-4 w-4" />Histórico</TabsTrigger>
         </TabsList>
 
@@ -289,21 +289,58 @@ function IntegracoesApiPage() {
         <TabsContent value="docs" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Documentação da API</CardTitle>
-              <CardDescription>Referência inicial do contrato planejado. Os exemplos abaixo são ilustrativos e não indicam que a API v2 esteja disponível.</CardDescription>
+              <CardTitle>Documentação API</CardTitle>
+              <CardDescription>Passo a passo para conectar uma plataforma externa ao Pix Cobranças Rápidas. A API v2 permanece em planejamento; os passos técnicos abaixo são preparatórios.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-5">
               <section className="space-y-2">
-                <h3 className="font-semibold">Autenticação prevista</h3>
-                <pre className="overflow-x-auto rounded-lg bg-muted p-3 text-xs"><code>Authorization: Bearer SUA_CHAVE_DE_API{ "\n" }Idempotency-Key: identificador-unico-da-operacao</code></pre>
+                <h3 className="font-semibold">1. Prepare a conta recebedora</h3>
+                <ol className="list-decimal space-y-1 pl-5 text-sm text-muted-foreground">
+                  <li>Entre em <strong>Cadastrar Contas</strong> e confirme que a integração Asaas está cadastrada e ativa.</li>
+                  <li>Confirme que a conta Asaas está habilitada para gerar cobranças Pix.</li>
+                  <li>Em <strong>Integrações &amp; API</strong>, verifique a disponibilidade da criação de chaves de API. Guarde qualquer chave somente em um gerenciador de segredos ou no servidor.</li>
+                </ol>
               </section>
               <section className="space-y-2">
-                <h3 className="font-semibold">Criar cobrança — planejado</h3>
-                <pre className="overflow-x-auto rounded-lg bg-muted p-3 text-xs"><code>{JSON.stringify({ method: "POST", path: "/api/v2/charges", body: { amount: 125.5, externalReference: "pedido-84721" }, response: { id: "id-da-cobranca", status: "PENDING", payment_url: "link-publico-de-pagamento" } }, null, 2)}</code></pre>
+                <h3 className="font-semibold">2. Prepare a plataforma externa</h3>
+                <p className="text-sm text-muted-foreground">O sistema de vendas deve calcular o valor final no servidor e identificar cada pedido com uma referência única. Envie somente os dados necessários para criar a cobrança.</p>
+                <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+                  <li>Valor final da venda em centavos.</li>
+                  <li>Referência única do pedido e descrição da compra.</li>
+                  <li>Dados do comprador apenas quando forem exigidos pelo contrato oficial.</li>
+                </ul>
+              </section>
+              <section className="space-y-2">
+                <h3 className="font-semibold">3. Fluxo de integração previsto</h3>
+                <ol className="list-decimal space-y-1 pl-5 text-sm text-muted-foreground">
+                  <li>A plataforma externa envia uma solicitação autenticada à API.</li>
+                  <li>O Pix Cobranças Rápidas cria a cobrança usando a conta recebedora configurada.</li>
+                  <li>A resposta deverá incluir o identificador e o link público de pagamento, conforme o contrato final.</li>
+                  <li>A plataforma externa salva esses dados e apresenta ao comprador um botão como “Pagar com Pix”.</li>
+                </ol>
+              </section>
+              <section className="space-y-2">
+                <h3 className="font-semibold">4. Exemplo ilustrativo dos dados</h3>
+                <p className="text-sm text-muted-foreground">Exemplo de conteúdo a enviar; não é uma requisição pronta para executar.</p>
+                <pre className="overflow-x-auto rounded-lg bg-muted p-3 text-xs"><code>{JSON.stringify({ amountCents: 12550, externalReference: "PEDIDO-10452", description: "Compra do pacote premium" }, null, 2)}</code></pre>
+                <p className="text-xs text-muted-foreground">12550 centavos correspondem a R$ 125,50. Os nomes definitivos dos campos serão os da especificação publicada.</p>
+              </section>
+              <section className="space-y-2">
+                <h3 className="font-semibold">5. Confirmar o pagamento</h3>
+                <p className="text-sm text-muted-foreground">Não marque o pedido como pago apenas porque o comprador voltou à loja ou enviou um comprovante. Confirme o status por um mecanismo confiável disponibilizado pela API antes de liberar o produto ou serviço.</p>
+              </section>
+              <section className="space-y-2">
+                <h3 className="font-semibold">6. Testar antes de liberar</h3>
+                <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+                  <li>Testar a criação e abertura do link de pagamento no ambiente disponibilizado.</li>
+                  <li>Verificar chave inválida, valor inválido, timeout e tentativas repetidas.</li>
+                  <li>Confirmar consulta de status e prevenção de cobranças duplicadas.</li>
+                  <li>Ativar em produção somente após testes e validação do contrato.</li>
+                </ul>
               </section>
               <div className="flex items-start gap-2 rounded-lg border p-3 text-sm text-muted-foreground">
                 <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />
-                <p>O contrato final, a consulta de status, as regras de valor mínimo, idempotência e os erros serão publicados após implementação, testes e aprovação.</p>
+                <p><strong>Status:</strong> a API v2 e a rota POST /api/v2/charges ainda estão em planejamento. URL-base, autenticação final, endpoint disponível, formato de resposta e consulta de status precisam ser publicados antes de conectar um sistema real. A API v1 permanece separada e inalterada.</p>
               </div>
             </CardContent>
           </Card>
