@@ -80,7 +80,8 @@ describe("phase 19 security isolation contracts", () => {
 
   it("scopes API audit history to the requested account", () => {
     const audit = readRepoFile("src/lib/api-audit.functions.ts");
-    expect(audit).toContain('.eq("account_id", data.accountId)');
+    expect(audit).toContain('.eq("id", data.accountId)');
+    expect(audit).toContain('.eq("account_id", account.id)');
     expect(audit).toContain("requireSupabaseAuth");
   });
 });
