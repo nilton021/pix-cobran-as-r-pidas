@@ -12,10 +12,10 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as ComoFuncionaRouteImport } from './routes/como-funciona'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as PagarIdRouteImport } from './routes/pagar.$id'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
-import { Route as AuthenticatedIntegracoesApiRouteImport } from './routes/_authenticated/integracoes-api'
 import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
+import { Route as AuthenticatedIntegracoesApiRouteImport } from './routes/_authenticated/integracoes-api'
+import { Route as PagarIdRouteImport } from './routes/pagar.$id'
 import { Route as AuthenticatedCobrancasIdRouteImport } from './routes/_authenticated/cobrancas.$id'
 import { Route as AuthenticatedContasIndexRouteImport } from './routes/_authenticated/contas.index'
 import { Route as AuthenticatedContasIdRouteImport } from './routes/_authenticated/contas.$id'
@@ -39,19 +39,9 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PagarIdRoute = PagarIdRouteImport.update({
-  id: '/pagar/$id',
-  path: '/pagar/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedIntegracoesApiRoute = AuthenticatedIntegracoesApiRouteImport.update({
-  id: '/integracoes-api',
-  path: '/integracoes-api',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedConfiguracoesRoute =
@@ -60,6 +50,17 @@ const AuthenticatedConfiguracoesRoute =
     path: '/configuracoes',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedIntegracoesApiRoute =
+  AuthenticatedIntegracoesApiRouteImport.update({
+    id: '/integracoes-api',
+    path: '/integracoes-api',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const PagarIdRoute = PagarIdRouteImport.update({
+  id: '/pagar/$id',
+  path: '/pagar/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedCobrancasIdRoute =
   AuthenticatedCobrancasIdRouteImport.update({
     id: '/cobrancas/$id',
@@ -108,9 +109,9 @@ export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/como-funciona': typeof ComoFuncionaRoute
   '/login': typeof LoginRoute
-  '/pagar/$id': typeof PagarIdRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/integracoes-api': typeof AuthenticatedIntegracoesApiRoute
+  '/pagar/$id': typeof PagarIdRoute
   '/cobrancas/$id': typeof AuthenticatedCobrancasIdRoute
   '/contas/$id': typeof AuthenticatedContasIdRoute
   '/api/public/efi-webhook': typeof ApiPublicEfiWebhookRoute
@@ -123,9 +124,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/como-funciona': typeof ComoFuncionaRoute
   '/login': typeof LoginRoute
-  '/pagar/$id': typeof PagarIdRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/integracoes-api': typeof AuthenticatedIntegracoesApiRoute
+  '/pagar/$id': typeof PagarIdRoute
   '/': typeof AuthenticatedIndexRoute
   '/cobrancas/$id': typeof AuthenticatedCobrancasIdRoute
   '/contas/$id': typeof AuthenticatedContasIdRoute
@@ -141,9 +142,9 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/como-funciona': typeof ComoFuncionaRoute
   '/login': typeof LoginRoute
-  '/pagar/$id': typeof PagarIdRoute
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/_authenticated/integracoes-api': typeof AuthenticatedIntegracoesApiRoute
+  '/pagar/$id': typeof PagarIdRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/cobrancas/$id': typeof AuthenticatedCobrancasIdRoute
   '/_authenticated/contas/$id': typeof AuthenticatedContasIdRoute
@@ -160,9 +161,9 @@ export interface FileRouteTypes {
     | '/'
     | '/como-funciona'
     | '/login'
-    | '/pagar/$id'
     | '/configuracoes'
     | '/integracoes-api'
+    | '/pagar/$id'
     | '/cobrancas/$id'
     | '/contas/$id'
     | '/api/public/efi-webhook'
@@ -175,9 +176,9 @@ export interface FileRouteTypes {
   to:
     | '/como-funciona'
     | '/login'
-    | '/pagar/$id'
     | '/configuracoes'
     | '/integracoes-api'
+    | '/pagar/$id'
     | '/'
     | '/cobrancas/$id'
     | '/contas/$id'
@@ -192,9 +193,9 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/como-funciona'
     | '/login'
-    | '/pagar/$id'
     | '/_authenticated/configuracoes'
     | '/_authenticated/integracoes-api'
+    | '/pagar/$id'
     | '/_authenticated/'
     | '/_authenticated/cobrancas/$id'
     | '/_authenticated/contas/$id'
@@ -240,18 +241,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/pagar/$id': {
-      id: '/pagar/$id'
-      path: '/pagar/$id'
-      fullPath: '/pagar/$id'
-      preLoaderRoute: typeof PagarIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated/': {
       id: '/_authenticated/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/configuracoes': {
+      id: '/_authenticated/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/configuracoes'
+      preLoaderRoute: typeof AuthenticatedConfiguracoesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/integracoes-api': {
@@ -261,12 +262,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIntegracoesApiRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/configuracoes': {
-      id: '/_authenticated/configuracoes'
-      path: '/configuracoes'
-      fullPath: '/configuracoes'
-      preLoaderRoute: typeof AuthenticatedConfiguracoesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/pagar/$id': {
+      id: '/pagar/$id'
+      path: '/pagar/$id'
+      fullPath: '/pagar/$id'
+      preLoaderRoute: typeof PagarIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/cobrancas/$id': {
       id: '/_authenticated/cobrancas/$id'
