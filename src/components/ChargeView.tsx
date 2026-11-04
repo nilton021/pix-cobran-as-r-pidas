@@ -40,7 +40,7 @@ export function ChargeView({ charge }: { charge: Tables<"charges"> }) {
 
     try {
       if (typeof navigator.share === "function") {
-        await navigator.share({ title: "Cobrança Pix", text: message, url: publicPaymentUrl || undefined });
+        await navigator.share({ title: "Cobrança Pix", text: message, ...(publicPaymentUrl ? { url: publicPaymentUrl } : {}) });
       } else {
         await navigator.clipboard.writeText(message);
         toast.success("Link e dados da cobrança copiados. Agora você pode enviar pelo WhatsApp ou outro aplicativo.");
