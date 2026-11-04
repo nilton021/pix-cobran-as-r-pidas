@@ -110,7 +110,10 @@ export const deletePaymentIntegration = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ integrationId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.rpc("delete_payment_integration", {
+    const { error } = await (context.supabase.rpc as unknown as (
+      name: "delete_payment_integration",
+      args: { p_integration_id: string },
+    ) => PromiseLike<{ error: { message: string } | null }>)("delete_payment_integration", {
       p_integration_id: data.integrationId,
     });
     if (error) throw new Error(error.message || "Não foi possível excluir a integração");
