@@ -460,6 +460,10 @@ export type Database = {
           retry_after_seconds: number
         }[]
       }
+      delete_payment_integration: {
+        Args: { p_integration_id: string }
+        Returns: undefined
+      }
       get_asaas_integration_credentials: {
         Args: { p_integration_id: string }
         Returns: {
@@ -472,6 +476,32 @@ export type Database = {
       get_customer_webhook_secret: {
         Args: { p_endpoint_id: string }
         Returns: string
+      }
+      get_efi_integration_credentials: {
+        Args: { p_integration_id: string }
+        Returns: {
+          certificate_base64: string
+          certificate_password: string
+          client_id: string
+          client_secret: string
+          environment: string
+          integration_id: string
+          pix_key: string
+          webhook_hmac: string
+        }[]
+      }
+      get_inter_integration_credentials: {
+        Args: { p_integration_id: string }
+        Returns: {
+          account_number: string
+          cert_pem: string
+          client_id: string
+          client_secret: string
+          environment: string
+          integration_id: string
+          key_pem: string
+          pix_key: string
+        }[]
       }
       get_picpay_integration_credentials: {
         Args: { p_integration_id: string }
@@ -499,6 +529,50 @@ export type Database = {
           p_environment?: string
           p_integration_id?: string
           p_webhook_token?: string
+        }
+        Returns: string
+      }
+      save_efi_integration: {
+        Args: {
+          p_account_id: string
+          p_certificate_base64?: string
+          p_certificate_password?: string
+          p_client_id?: string
+          p_client_secret?: string
+          p_display_name?: string
+          p_environment?: string
+          p_integration_id?: string
+          p_pix_key?: string
+        }
+        Returns: {
+          integration_id: string
+          webhook_hmac: string
+        }[]
+      }
+      save_inter_integration: {
+        Args: {
+          p_account_id: string
+          p_account_number?: string
+          p_cert_pem?: string
+          p_client_id?: string
+          p_client_secret?: string
+          p_display_name?: string
+          p_environment?: string
+          p_integration_id?: string
+          p_key_pem?: string
+          p_pix_key?: string
+        }
+        Returns: string
+      }
+      save_picpay_integration: {
+        Args: {
+          p_account_id: string
+          p_client_id?: string
+          p_client_secret?: string
+          p_display_name?: string
+          p_environment?: string
+          p_integration_id?: string
+          p_webhook_secret?: string
         }
         Returns: string
       }
