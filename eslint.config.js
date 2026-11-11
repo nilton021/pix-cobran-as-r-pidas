@@ -37,4 +37,11 @@ export default tseslint.config(
     },
   },
   eslintPluginPrettier,
+  {
+    files: ["**/*.{ts,tsx}"],
+    rules: {
+      // Formatting is checked separately for changed files in CI.
+      "prettier/prettier": "off",
+    },
+  },
 );
