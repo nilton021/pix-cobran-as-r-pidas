@@ -7,6 +7,7 @@ function providerOf(row: { payment_integrations?: { provider?: string } | { prov
 
 // Reconciliação periódica (pg_cron). Protegida pelo segredo em app_config enviado no header x-cron-secret.
 export const Route = createFileRoute("/api/public/reconcile-charges")({
+  staticData: { sitemap: false },
   server: {
     handlers: {
       POST: async ({ request }) => {

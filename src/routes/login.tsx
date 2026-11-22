@@ -10,7 +10,12 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/login")({
+  staticData: { sitemap: false },
+  validateSearch: (search: Record<string, unknown>): { cadastro?: boolean } =>
+    search["cadastro"] === true || search["cadastro"] === "true" ? { cadastro: true } : {},
   head: () => ({ meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     { title: "Entrar — Pix Charges" },
     { name: "description", content: "Acesse o Pix Charges para emitir cobranças Pix com QR Code dinâmico." },
     { property: "og:title", content: "Entrar — Pix Charges" },
@@ -27,7 +32,7 @@ export const authSchema = z.object({
 
 function Login() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"in" | "up">("in");
+  const [mode, setMode] = useState<"in" | "up">(Route.useSearch().cadastro ? "up" : "in");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -42,7 +47,7 @@ function Login() {
       if (mode === "in") {
         const { error } = await supabase.auth.signInWithPassword({ email: parsed.data.email, password: parsed.data.password });
         if (error) throw error;
-        navigate({ to: "/" });
+        navigate({ to: "/painel" });
       } else {
         const { data, error } = await supabase.auth.signUp({
           email: parsed.data.email,

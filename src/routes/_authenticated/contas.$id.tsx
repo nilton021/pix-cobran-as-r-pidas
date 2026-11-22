@@ -22,8 +22,11 @@ import { useChargesRealtime } from "@/hooks/use-charge-realtime";
 import { useHiddenCharges } from "@/hooks/use-hidden-charges";
 
 export const Route = createFileRoute("/_authenticated/contas/$id")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Cobranças da conta — Pix Charges" },
       { name: "description", content: "Cobranças Pix emitidas para esta conta." },
       { property: "og:title", content: "Cobranças da conta — Pix Charges" },

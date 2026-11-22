@@ -27,9 +27,14 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/_authenticated/integracoes-api")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Integrações & API — Pix Charges" },
+      { property: "og:title", content: "Integrações & API — Pix Charges" },
+      { property: "og:description", content: "Gerencie chaves de API, acompanhe solicitações e consulte o planejamento da API externa." },
       { name: "description", content: "Gerencie chaves de API, acompanhe solicitações e consulte o planejamento da API externa." },
     ],
   }),

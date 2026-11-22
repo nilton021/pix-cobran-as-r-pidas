@@ -9,12 +9,14 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as ComoFuncionaRouteImport } from './routes/como-funciona'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
 import { Route as AuthenticatedIntegracoesApiRouteImport } from './routes/_authenticated/integracoes-api'
+import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
 import { Route as PagarIdRouteImport } from './routes/pagar.$id'
 import { Route as AuthenticatedCobrancasIdRouteImport } from './routes/_authenticated/cobrancas.$id'
 import { Route as AuthenticatedContasIndexRouteImport } from './routes/_authenticated/contas.index'
@@ -25,6 +27,11 @@ import { Route as ApiPublicReconcileChargesRouteImport } from './routes/api/publ
 import { Route as ApiV1ChargesRouteImport } from './routes/api/v1/charges'
 import { Route as ApiV1ChargesIdRouteImport } from './routes/api/v1/charges/$id'
 
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
@@ -39,10 +46,10 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AuthenticatedRouteRoute,
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedConfiguracoesRoute =
   AuthenticatedConfiguracoesRouteImport.update({
@@ -56,6 +63,11 @@ const AuthenticatedIntegracoesApiRoute =
     path: '/integracoes-api',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
+  id: '/painel',
+  path: '/painel',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const PagarIdRoute = PagarIdRouteImport.update({
   id: '/pagar/$id',
   path: '/pagar/$id',
@@ -106,11 +118,13 @@ const ApiV1ChargesIdRoute = ApiV1ChargesIdRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof AuthenticatedIndexRoute
+  '/': typeof IndexRoute
   '/como-funciona': typeof ComoFuncionaRoute
   '/login': typeof LoginRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/integracoes-api': typeof AuthenticatedIntegracoesApiRoute
+  '/painel': typeof AuthenticatedPainelRoute
   '/pagar/$id': typeof PagarIdRoute
   '/cobrancas/$id': typeof AuthenticatedCobrancasIdRoute
   '/contas/$id': typeof AuthenticatedContasIdRoute
@@ -122,12 +136,14 @@ export interface FileRoutesByFullPath {
   '/api/v1/charges/$id': typeof ApiV1ChargesIdRoute
 }
 export interface FileRoutesByTo {
+  '/': typeof IndexRoute
   '/como-funciona': typeof ComoFuncionaRoute
   '/login': typeof LoginRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/integracoes-api': typeof AuthenticatedIntegracoesApiRoute
+  '/painel': typeof AuthenticatedPainelRoute
   '/pagar/$id': typeof PagarIdRoute
-  '/': typeof AuthenticatedIndexRoute
   '/cobrancas/$id': typeof AuthenticatedCobrancasIdRoute
   '/contas/$id': typeof AuthenticatedContasIdRoute
   '/api/public/efi-webhook': typeof ApiPublicEfiWebhookRoute
@@ -139,13 +155,15 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/como-funciona': typeof ComoFuncionaRoute
   '/login': typeof LoginRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/_authenticated/integracoes-api': typeof AuthenticatedIntegracoesApiRoute
+  '/_authenticated/painel': typeof AuthenticatedPainelRoute
   '/pagar/$id': typeof PagarIdRoute
-  '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/cobrancas/$id': typeof AuthenticatedCobrancasIdRoute
   '/_authenticated/contas/$id': typeof AuthenticatedContasIdRoute
   '/api/public/efi-webhook': typeof ApiPublicEfiWebhookRoute
@@ -161,8 +179,10 @@ export interface FileRouteTypes {
     | '/'
     | '/como-funciona'
     | '/login'
+    | '/sitemap.xml'
     | '/configuracoes'
     | '/integracoes-api'
+    | '/painel'
     | '/pagar/$id'
     | '/cobrancas/$id'
     | '/contas/$id'
@@ -174,12 +194,14 @@ export interface FileRouteTypes {
     | '/api/v1/charges/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/'
     | '/como-funciona'
     | '/login'
+    | '/sitemap.xml'
     | '/configuracoes'
     | '/integracoes-api'
+    | '/painel'
     | '/pagar/$id'
-    | '/'
     | '/cobrancas/$id'
     | '/contas/$id'
     | '/api/public/efi-webhook'
@@ -190,13 +212,15 @@ export interface FileRouteTypes {
     | '/api/v1/charges/$id'
   id:
     | '__root__'
+    | '/'
     | '/_authenticated'
     | '/como-funciona'
     | '/login'
+    | '/sitemap.xml'
     | '/_authenticated/configuracoes'
     | '/_authenticated/integracoes-api'
+    | '/_authenticated/painel'
     | '/pagar/$id'
-    | '/_authenticated/'
     | '/_authenticated/cobrancas/$id'
     | '/_authenticated/contas/$id'
     | '/api/public/efi-webhook'
@@ -208,9 +232,11 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   ComoFuncionaRoute: typeof ComoFuncionaRoute
   LoginRoute: typeof LoginRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   PagarIdRoute: typeof PagarIdRoute
   ApiPublicEfiWebhookRoute: typeof ApiPublicEfiWebhookRoute
   ApiPublicPicpayWebhookRoute: typeof ApiPublicPicpayWebhookRoute
@@ -220,6 +246,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated': {
       id: '/_authenticated'
       path: ''
@@ -241,12 +274,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/': {
-      id: '/_authenticated/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/configuracoes': {
       id: '/_authenticated/configuracoes'
@@ -260,6 +293,13 @@ declare module '@tanstack/react-router' {
       path: '/integracoes-api'
       fullPath: '/integracoes-api'
       preLoaderRoute: typeof AuthenticatedIntegracoesApiRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/painel': {
+      id: '/_authenticated/painel'
+      path: '/painel'
+      fullPath: '/painel'
+      preLoaderRoute: typeof AuthenticatedPainelRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/pagar/$id': {
@@ -331,7 +371,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
   AuthenticatedIntegracoesApiRoute: typeof AuthenticatedIntegracoesApiRoute
-  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
   AuthenticatedCobrancasIdRoute: typeof AuthenticatedCobrancasIdRoute
   AuthenticatedContasIdRoute: typeof AuthenticatedContasIdRoute
   AuthenticatedContasIndexRoute: typeof AuthenticatedContasIndexRoute
@@ -340,7 +380,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
   AuthenticatedIntegracoesApiRoute: AuthenticatedIntegracoesApiRoute,
-  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedPainelRoute: AuthenticatedPainelRoute,
   AuthenticatedCobrancasIdRoute: AuthenticatedCobrancasIdRoute,
   AuthenticatedContasIdRoute: AuthenticatedContasIdRoute,
   AuthenticatedContasIndexRoute: AuthenticatedContasIndexRoute,
@@ -362,9 +402,11 @@ const ApiV1ChargesRouteWithChildren = ApiV1ChargesRoute._addFileChildren(
 )
 
 const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   ComoFuncionaRoute: ComoFuncionaRoute,
   LoginRoute: LoginRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   PagarIdRoute: PagarIdRoute,
   ApiPublicEfiWebhookRoute: ApiPublicEfiWebhookRoute,
   ApiPublicPicpayWebhookRoute: ApiPublicPicpayWebhookRoute,

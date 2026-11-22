@@ -4,6 +4,7 @@ import type { Json } from "@/integrations/supabase/types";
 
 // Chamado pelo PicPay. O segredo é resolvido pela integração vinculada à cobrança.
 export const Route = createFileRoute("/api/public/picpay-webhook")({
+  staticData: { sitemap: false },
   server: {
     handlers: {
       POST: async ({ request }) => {

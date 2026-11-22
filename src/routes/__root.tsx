@@ -75,9 +75,11 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { charSet: "utf-8" },
+      { name: "google-site-verification", content: "7qAV8D1f0yuzoI0qtfQCTY1GwG9nSe3P3BjlTeKzRRQ" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Pix Charges" },
       {
@@ -121,7 +123,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="pt-BR">
       <head>
         <HeadContent />
       </head>

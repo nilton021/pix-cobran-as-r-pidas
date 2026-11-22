@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { Json } from "@/integrations/supabase/types";
 
 export const Route = createFileRoute("/api/public/efi-webhook")({
+  staticData: { sitemap: false },
   server: {
     handlers: {
       POST: async ({ request }) => {

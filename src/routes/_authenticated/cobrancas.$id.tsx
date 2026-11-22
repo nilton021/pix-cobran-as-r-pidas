@@ -12,8 +12,11 @@ import { formatDateTime, payerName } from "@/lib/format";
 import { useChargesRealtime } from "@/hooks/use-charge-realtime";
 
 export const Route = createFileRoute("/_authenticated/cobrancas/$id")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Detalhe da cobrança — Pix Charges" },
       { name: "description", content: "Status, QR Code e dados de pagamento da cobrança Pix." },
       { property: "og:title", content: "Detalhe da cobrança — Pix Charges" },

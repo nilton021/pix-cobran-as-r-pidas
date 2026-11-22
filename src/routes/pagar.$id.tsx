@@ -9,9 +9,14 @@ import { getPublicCharge } from "@/lib/public-charge.functions";
 import { formatBRL, formatDateTime } from "@/lib/format";
 
 export const Route = createFileRoute("/pagar/$id")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Pagar cobrança Pix — Pix Charges" },
+      { property: "og:title", content: "Pagar cobrança Pix — Pix Charges" },
+      { property: "og:description", content: "Consulte os dados e pague esta cobrança Pix no aplicativo do seu banco." },
       { name: "description", content: "Consulte os dados e pague esta cobrança Pix no aplicativo do seu banco." },
       { name: "robots", content: "noindex, nofollow" },
     ],

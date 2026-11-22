@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createApiAuditContext, recordApiAudit } from "@/lib/api-audit.server";
 
 export const Route = createFileRoute("/api/v1/charges/$id")({
+  staticData: { sitemap: false },
   server: {
     handlers: {
       GET: async ({ request, params }) => {

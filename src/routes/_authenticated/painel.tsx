@@ -9,9 +9,12 @@ import { formatBRL, formatDateTime } from "@/lib/format";
 import { useChargesRealtime } from "@/hooks/use-charge-realtime";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export const Route = createFileRoute("/_authenticated/")({
+export const Route = createFileRoute("/_authenticated/painel")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Painel — Pix Charges" },
       { name: "description", content: "Resumo das suas cobranças Pix: recebido no mês, pendentes e pagas hoje." },
       { property: "og:title", content: "Painel — Pix Charges" },

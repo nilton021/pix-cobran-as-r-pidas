@@ -10,6 +10,7 @@ const schema = z.object({
 });
 
 export const Route = createFileRoute("/api/v1/charges")({
+  staticData: { sitemap: false },
   server: {
     handlers: {
       POST: async ({ request }) => {

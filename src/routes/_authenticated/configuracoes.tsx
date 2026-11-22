@@ -9,9 +9,14 @@ import { getPaymentSettings, savePaymentIntegration, deletePaymentIntegration } 
 import { PAYMENT_PROVIDERS } from "@/lib/payment-providers";
 
 export const Route = createFileRoute("/_authenticated/configuracoes")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Configurações — Pix Charges" },
+      { property: "og:title", content: "Configurações — Pix Charges" },
+      { property: "og:description", content: "Configure seus provedores de pagamento com credenciais protegidas no Vault." },
       { name: "description", content: "Configure seus provedores de pagamento com credenciais protegidas no Vault." },
     ],
   }),

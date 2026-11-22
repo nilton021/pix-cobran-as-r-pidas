@@ -98,6 +98,14 @@
   --sidebar-border: oklch(0.91 0.012 180);
   --sidebar-ring: oklch(0.52 0.11 180);
   --gradient-brand: linear-gradient(135deg, oklch(0.52 0.11 180), oklch(0.45 0.1 200));
+  --merchant-foreground: oklch(0.99 0.004 170);
+  --merchant-shade: linear-gradient(90deg, oklch(0.17 0.035 175 / 0.92), oklch(0.17 0.035 175 / 0.68) 43%, oklch(0.17 0.035 175 / 0.08) 78%);
+}
+
+.merchant-cover { color: var(--merchant-foreground); }
+.merchant-shade { background: var(--merchant-shade); }
+@media (max-width: 639px) {
+  .merchant-shade { background: oklch(0.17 0.035 175 / 0.76); }
 }
 
 @layer base {

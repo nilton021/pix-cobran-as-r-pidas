@@ -8,3 +8,6 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Keep the public homepage independent of account/payment queries; the operational dashboard lives under the authenticated subtree so sharing never reveals financial data.
+- Maintain the router-derived sitemap with explicit staticData decisions on every route; exclude the authenticated subtree, login, payment links and APIs to protect private content.

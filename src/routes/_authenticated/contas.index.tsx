@@ -23,8 +23,11 @@ const BANK_BRANDS = [
 ] as const;
 
 export const Route = createFileRoute("/_authenticated/contas/")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Contas e cobranças — Pix Charges" },
       { name: "description", content: "Cadastre uma conta e, dentro dela, gere cobranças Pix." },
       { property: "og:title", content: "Contas e cobranças — Pix Charges" },

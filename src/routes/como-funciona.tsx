@@ -15,9 +15,14 @@ import {
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/como-funciona")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Como funciona — Pix Charges" },
+      { property: "og:title", content: "Como funciona — Pix Charges" },
+      { property: "og:description", content: "Entenda como funciona o Pix Charges, como configurar suas credenciais e como usar cobranças Pix com seus clientes." },
       {
         name: "description",
         content:
