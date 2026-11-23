@@ -1,12 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Copy, CheckCircle2, XCircle, ShieldCheck, Eye, EyeOff } from "lucide-react";
+import { Copy, CheckCircle2, XCircle, ShieldCheck, Eye, EyeOff, Save, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getPaymentSettings, savePaymentIntegration, deletePaymentIntegration } from "@/lib/payment-integration.functions";
-import { PAYMENT_PROVIDERS } from "@/lib/payment-providers";
+import { PAYMENT_PROVIDERS, canConfigureProvider } from "@/lib/payment-providers";
 
 export const Route = createFileRoute("/_authenticated/configuracoes")({
   staticData: { sitemap: false },
@@ -14,8 +14,8 @@ export const Route = createFileRoute("/_authenticated/configuracoes")({
     meta: [
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { title: "Configurações — Pix Charges" },
-      { property: "og:title", content: "Configurações — Pix Charges" },
+      { title: "Credenciais de pagamento — Pix Charges" },
+      { property: "og:title", content: "Credenciais de pagamento — Pix Charges" },
       { property: "og:description", content: "Configure seus provedores de pagamento com credenciais protegidas no Vault." },
       { name: "description", content: "Configure seus provedores de pagamento com credenciais protegidas no Vault." },
     ],
@@ -179,11 +179,22 @@ function Config() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <h1 className="text-2xl font-extrabold">Configurações</h1>
+        <h1 className="text-2xl font-extrabold">Credenciais de pagamento</h1>
         <p className="text-sm text-muted-foreground">
-          Integrações de pagamento com credenciais protegidas no Supabase Vault.
+          PicPay, Banco Inter e Efí · acesso protegido ao seu negócio.
         </p>
       </div>
+
+      {settings.isPending && <p role="status" className="text-sm text-muted-foreground">Carregando contas e integrações...</p>}
+      {settings.isError && (
+        <div role="alert" className="space-y-3 border-l-2 border-destructive pl-4 text-sm">
+          <p>Não foi possível carregar suas contas e integrações. O salvamento depende da conexão com o Lovable Cloud e de uma conta cadastrada.</p>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={() => settings.refetch()} disabled={settings.isFetching}><RefreshCw className="size-4" />Tentar novamente</Button>
+            <Button asChild variant="outline"><Link to="/contas">Minhas contas</Link></Button>
+          </div>
+        </div>
+      )}
 
       <section className="space-y-3 rounded-xl border bg-card p-5">
         <h2 className="font-bold">Conta que receberá as cobranças</h2>
@@ -283,16 +294,20 @@ function Config() {
                   ? "INATIVO · CADASTRADO"
                   : null;
             return (
-              <button
+              <Button
                 key={item.id}
                 type="button"
-                disabled={item.status !== "available"}
+                variant="outline"
+                aria-pressed={provider === item.id}
+                disabled={!canConfigureProvider(item.id) || mutation.isPending}
                 onClick={() => {
                   if (item.id === "PICPAY" || item.id === "ASAAS" || item.id === "INTER" || item.id === "EFI") {
                     setProvider(item.id);
                     setIntegrationId(existing?.id ?? "");
                     setDisplayName(existing?.display_name ?? item.name);
-                    if (existing) setEnvironment(existing.environment);
+                    setEnvironment(existing?.environment ?? "PRODUCTION");
+                    setShowSecrets(false);
+                    mutation.reset();
                     setCredential1("");
                     setCredential2("");
                     setCredential3("");
@@ -302,18 +317,18 @@ function Config() {
                     setEfiWebhookHmac("");
                   }
                 }}
-                className={"rounded-lg border p-3 text-left " + (provider === item.id ? "border-primary bg-muted" : "")}
+                className={"h-auto min-h-24 flex-col items-start justify-center whitespace-normal rounded-lg p-3 text-left " + (provider === item.id ? "border-primary bg-muted" : "")}
               >
                 <div className="flex items-center gap-3"><ProviderBrand provider={item.id} /><span className="font-semibold">{item.name}</span></div>
                 <div className="text-xs text-muted-foreground">
-                  {existingStatus ?? (item.status === "available" ? "Disponível" : "Em breve")}
+                  {existingStatus ?? (canConfigureProvider(item.id) ? "Configurar credenciais" : "Em breve")}
                 </div>
                 {existing && (
                   <div className="mt-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
                     Integração existente — selecione para gerenciar, não cadastre novamente.
                   </div>
                 )}
-              </button>
+              </Button>
             );
           })}
         </div>
@@ -322,7 +337,7 @@ function Config() {
       <section className="space-y-4 rounded-xl border bg-card p-5">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 className="font-bold">Integração {provider === "ASAAS" ? "Asaas" : provider === "INTER" ? "Banco Inter" : provider === "EFI" ? "Efí Bank" : "PicPay"}</h2>
+            <h2 className="font-bold">Credenciais {provider === "ASAAS" ? "Asaas" : provider === "INTER" ? "Banco Inter" : provider === "EFI" ? "Efí Bank" : "PicPay"}</h2>
             <p className="text-xs text-muted-foreground">
               {isEditing
                 ? "Editando a integração. As credenciais atuais nunca são exibidas."
@@ -339,7 +354,7 @@ function Config() {
           </div>
         )}
 
-        <fieldset disabled={isActiveIntegration} className="space-y-4 disabled:opacity-60">
+        <fieldset disabled={isActiveIntegration || mutation.isPending} className="space-y-4 disabled:opacity-60">
         {integrations.length > 0 && (
           <label className="block space-y-1 text-sm">
             <span className="font-medium">Integração existente</span>
@@ -351,7 +366,7 @@ function Config() {
               {!integrations.some((item) => item.provider === provider) && (
                 <option value="">Nova integração</option>
               )}
-              {integrations.map((item) => (
+              {integrations.filter((item) => item.provider === provider).map((item) => (
                 <option key={item.id} value={item.id}>
                   {item.display_name} — {item.provider} — {item.environment} — {item.status}
                 </option>
@@ -379,7 +394,7 @@ function Config() {
           value={credential1}
           onChange={setCredential1}
           visible={showSecrets}
-          placeholder={isEditing ? "Deixe vazio para manter o atual" : provider === "ASAAS" ? "API Key do Asaas" : provider === "EFI" ? "Client ID da aplicação Efí" : "Client ID do Banco Inter"}
+          placeholder={isEditing ? "Deixe vazio para manter o atual" : provider === "ASAAS" ? "API Key do Asaas" : provider === "EFI" ? "Client ID da aplicação Efí" : provider === "PICPAY" ? "Client ID do PicPay Business" : "Client ID do Banco Inter"}
         />
 
         <SecretField
@@ -387,7 +402,7 @@ function Config() {
           value={credential2}
           onChange={setCredential2}
           visible={showSecrets}
-          placeholder={isEditing ? "Deixe vazio para manter o atual" : provider === "ASAAS" ? "Token do webhook Asaas" : provider === "EFI" ? "Client Secret da aplicação Efí" : "Client Secret do Banco Inter"}
+          placeholder={isEditing ? "Deixe vazio para manter o atual" : provider === "ASAAS" ? "Token do webhook Asaas" : provider === "EFI" ? "Client Secret da aplicação Efí" : provider === "PICPAY" ? "Client Secret do PicPay Business" : "Client Secret do Banco Inter"}
         />
 
         {provider === "PICPAY" && (
@@ -442,10 +457,12 @@ function Config() {
             {showSecrets ? <EyeOff className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />}
             {showSecrets ? "Ocultar segredos" : "Mostrar campos"}
           </Button>
-          <Button type="button" disabled={!accountId || !displayName.trim() || mutation.isPending} onClick={() => mutation.mutate()}>
-            {mutation.isPending ? "Salvando..." : isEditing ? "Salvar alterações" : integrations.some((item) => item.provider === provider) ? "Gerenciar integração existente" : "Cadastrar integração"}
+          <Button type="button" disabled={!accountId || !displayName.trim() || mutation.isPending || !settings.data || settings.isError} onClick={() => mutation.mutate()}>
+            <Save className="size-4" />{mutation.isPending ? "Salvando..." : isEditing ? "Salvar alterações" : "Salvar credenciais"}
           </Button>
         </div>
+        <p className="text-xs text-muted-foreground">Salvar credenciais não confirma a conexão com o banco nem libera cobranças automaticamente.</p>
+        {mutation.isError && <p role="alert" className="text-sm text-destructive">Não foi possível salvar as credenciais. Verifique a conexão e a disponibilidade da integração no Lovable Cloud; tente novamente.</p>}
         </fieldset>
 
         {selected && (

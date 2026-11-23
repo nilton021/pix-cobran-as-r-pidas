@@ -11,3 +11,8 @@ export const PAYMENT_PROVIDERS = [
 ] as const;
 
 export type PaymentProviderId = typeof PAYMENT_PROVIDERS[number]["id"];
+
+// Credential setup is separate from the provider's payment availability.
+export function canConfigureProvider(provider: string): boolean {
+  return ["PICPAY", "ASAAS", "INTER", "EFI"].includes(provider);
+}
