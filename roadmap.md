@@ -1,4 +1,15 @@
 # Divulgação e publicação
+
+## Cartão por aproximação (fase 1: backend) — somente este rascunho
+- [ ] Inspecionar proteções Pix, API v1, ausência/presença v2 e pipeline sem alterar comportamentos
+- [ ] Preparar proposta SQL 0022 fora das migrations gerenciadas, sem aplicação ou mudança no journal
+- [ ] Implementar adaptador abstrato/mock, API protegida, assinatura/anti-replay/fila durável e reconciliação independente, flag desativada
+- [ ] Acrescentar configuração e botão condicionado; sem leitura NFC no navegador ou adquirente real
+- [ ] Rodar testes relevantes e documentar limites por schema não aplicado
+- [ ] Abrir um único PR nativo para main, verificar CI se houver acesso; nenhum merge, publicação, aceitação ou migration em produção sem nova confirmação
+- [ ] Documentar próximos passos: Capacitor, contrato adquirente e SDK nativo
+
+## Pedidos anteriores (não retomados nesta fase)
 - [x] Preparar seleção PicPay, Banco Inter e Efí com salvamento na tela privada de credenciais; seleção e recusa de campos vazios verificadas com sessão autenticada
 - [x] Solicitar publicação da página pública no endereço real após verificação de segurança — publicação agendada; conclusão da implantação não confirmada
 - [x] Página pública Pix Charges com convite ao cadastro existente, sem contas ou cobranças, e compartilhamento

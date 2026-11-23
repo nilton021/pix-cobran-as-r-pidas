@@ -7,6 +7,7 @@ import { Copy, CheckCircle2, XCircle, ShieldCheck, Eye, EyeOff, Save, RefreshCw 
 import { Button } from "@/components/ui/button";
 import { getPaymentSettings, savePaymentIntegration, deletePaymentIntegration } from "@/lib/payment-integration.functions";
 import { PAYMENT_PROVIDERS, canConfigureProvider } from "@/lib/payment-providers";
+import { CardPresentSettings } from "@/components/CardPresentSettings";
 
 export const Route = createFileRoute("/_authenticated/configuracoes")({
   staticData: { sitemap: false },
@@ -186,6 +187,7 @@ function Config() {
       </div>
 
       {settings.isPending && <p role="status" className="text-sm text-muted-foreground">Carregando contas e integrações...</p>}
+      <CardPresentSettings />
       {settings.isError && (
         <div role="alert" className="space-y-3 border-l-2 border-destructive pl-4 text-sm">
           <p>Não foi possível carregar suas contas e integrações. O salvamento depende da conexão com o Lovable Cloud e de uma conta cadastrada.</p>

@@ -10,6 +10,8 @@ import { ChargeView } from "@/components/ChargeView";
 import { syncCharge } from "@/lib/charges.functions";
 import { formatDateTime, payerName } from "@/lib/format";
 import { useChargesRealtime } from "@/hooks/use-charge-realtime";
+import { CardPresentAction, CardPresentCharge } from "@/components/CardPresentCharge";
+import { isCardEnabled, methodOf } from "@/lib/card-present/contracts";
 
 export const Route = createFileRoute("/_authenticated/cobrancas/$id")({
   staticData: { sitemap: false },
@@ -50,6 +52,9 @@ function Detalhe() {
 
   if (isLoading) return <p className="text-muted-foreground">Carregando…</p>;
   if (!c) return <p>Cobrança não encontrada.</p>;
+  if (isCardEnabled(import.meta.env["VITE_CARD_NFC_ENABLED"]) && methodOf(c as typeof c & { payment_method?: string }) === "CARD_NFC") {
+    return <div className="mx-auto max-w-lg space-y-4"><CardPresentCharge chargeId={c.id} /></div>;
+  }
   const acc = c.accounts as { id: string; name: string } | null;
   const rows: [string, string][] = [
     ["Conta", acc?.name ?? "—"],
@@ -70,6 +75,7 @@ function Detalhe() {
       <Button variant="outline" className="w-full" onClick={refresh} disabled={syncing}>
         <RefreshCw className={syncing ? "h-4 w-4 animate-spin" : "h-4 w-4"} /> Atualizar status
       </Button>
+      <CardPresentAction chargeId={c.id} />
       <dl className="divide-y rounded-xl border bg-card text-sm">
         {rows.map(([k, v]) => (
           <div key={k} className="flex justify-between gap-4 p-3"><dt className="text-muted-foreground">{k}</dt><dd className="break-all text-right font-medium">{v}</dd></div>

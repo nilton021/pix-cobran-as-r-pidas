@@ -21,11 +21,15 @@ import { Route as PagarIdRouteImport } from './routes/pagar.$id'
 import { Route as AuthenticatedCobrancasIdRouteImport } from './routes/_authenticated/cobrancas.$id'
 import { Route as AuthenticatedContasIndexRouteImport } from './routes/_authenticated/contas.index'
 import { Route as AuthenticatedContasIdRouteImport } from './routes/_authenticated/contas.$id'
+import { Route as ApiPublicCardPresentWebhookRouteImport } from './routes/api/public/card-present-webhook'
 import { Route as ApiPublicEfiWebhookRouteImport } from './routes/api/public/efi-webhook'
 import { Route as ApiPublicPicpayWebhookRouteImport } from './routes/api/public/picpay-webhook'
+import { Route as ApiPublicReconcileCardPresentRouteImport } from './routes/api/public/reconcile-card-present'
 import { Route as ApiPublicReconcileChargesRouteImport } from './routes/api/public/reconcile-charges'
 import { Route as ApiV1ChargesRouteImport } from './routes/api/v1/charges'
 import { Route as ApiV1ChargesIdRouteImport } from './routes/api/v1/charges/$id'
+import { Route as ApiV2CardPresentSessionsRouteImport } from './routes/api/v2/card-present/sessions'
+import { Route as ApiV2CardPresentSessionsIdRouteImport } from './routes/api/v2/card-present/sessions/$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -90,6 +94,12 @@ const AuthenticatedContasIdRoute = AuthenticatedContasIdRouteImport.update({
   path: '/contas/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicCardPresentWebhookRoute =
+  ApiPublicCardPresentWebhookRouteImport.update({
+    id: '/api/public/card-present-webhook',
+    path: '/api/public/card-present-webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicEfiWebhookRoute = ApiPublicEfiWebhookRouteImport.update({
   id: '/api/public/efi-webhook',
   path: '/api/public/efi-webhook',
@@ -100,6 +110,12 @@ const ApiPublicPicpayWebhookRoute = ApiPublicPicpayWebhookRouteImport.update({
   path: '/api/public/picpay-webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicReconcileCardPresentRoute =
+  ApiPublicReconcileCardPresentRouteImport.update({
+    id: '/api/public/reconcile-card-present',
+    path: '/api/public/reconcile-card-present',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicReconcileChargesRoute =
   ApiPublicReconcileChargesRouteImport.update({
     id: '/api/public/reconcile-charges',
@@ -116,6 +132,18 @@ const ApiV1ChargesIdRoute = ApiV1ChargesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiV1ChargesRoute,
 } as any)
+const ApiV2CardPresentSessionsRoute =
+  ApiV2CardPresentSessionsRouteImport.update({
+    id: '/api/v2/card-present/sessions',
+    path: '/api/v2/card-present/sessions',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiV2CardPresentSessionsIdRoute =
+  ApiV2CardPresentSessionsIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => ApiV2CardPresentSessionsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -128,12 +156,16 @@ export interface FileRoutesByFullPath {
   '/pagar/$id': typeof PagarIdRoute
   '/cobrancas/$id': typeof AuthenticatedCobrancasIdRoute
   '/contas/$id': typeof AuthenticatedContasIdRoute
+  '/api/public/card-present-webhook': typeof ApiPublicCardPresentWebhookRoute
   '/api/public/efi-webhook': typeof ApiPublicEfiWebhookRoute
   '/api/public/picpay-webhook': typeof ApiPublicPicpayWebhookRoute
+  '/api/public/reconcile-card-present': typeof ApiPublicReconcileCardPresentRoute
   '/api/public/reconcile-charges': typeof ApiPublicReconcileChargesRoute
   '/api/v1/charges': typeof ApiV1ChargesRouteWithChildren
   '/contas/': typeof AuthenticatedContasIndexRoute
   '/api/v1/charges/$id': typeof ApiV1ChargesIdRoute
+  '/api/v2/card-present/sessions': typeof ApiV2CardPresentSessionsRouteWithChildren
+  '/api/v2/card-present/sessions/$id': typeof ApiV2CardPresentSessionsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -146,12 +178,16 @@ export interface FileRoutesByTo {
   '/pagar/$id': typeof PagarIdRoute
   '/cobrancas/$id': typeof AuthenticatedCobrancasIdRoute
   '/contas/$id': typeof AuthenticatedContasIdRoute
+  '/api/public/card-present-webhook': typeof ApiPublicCardPresentWebhookRoute
   '/api/public/efi-webhook': typeof ApiPublicEfiWebhookRoute
   '/api/public/picpay-webhook': typeof ApiPublicPicpayWebhookRoute
+  '/api/public/reconcile-card-present': typeof ApiPublicReconcileCardPresentRoute
   '/api/public/reconcile-charges': typeof ApiPublicReconcileChargesRoute
   '/api/v1/charges': typeof ApiV1ChargesRouteWithChildren
   '/contas': typeof AuthenticatedContasIndexRoute
   '/api/v1/charges/$id': typeof ApiV1ChargesIdRoute
+  '/api/v2/card-present/sessions': typeof ApiV2CardPresentSessionsRouteWithChildren
+  '/api/v2/card-present/sessions/$id': typeof ApiV2CardPresentSessionsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -166,12 +202,16 @@ export interface FileRoutesById {
   '/pagar/$id': typeof PagarIdRoute
   '/_authenticated/cobrancas/$id': typeof AuthenticatedCobrancasIdRoute
   '/_authenticated/contas/$id': typeof AuthenticatedContasIdRoute
+  '/api/public/card-present-webhook': typeof ApiPublicCardPresentWebhookRoute
   '/api/public/efi-webhook': typeof ApiPublicEfiWebhookRoute
   '/api/public/picpay-webhook': typeof ApiPublicPicpayWebhookRoute
+  '/api/public/reconcile-card-present': typeof ApiPublicReconcileCardPresentRoute
   '/api/public/reconcile-charges': typeof ApiPublicReconcileChargesRoute
   '/api/v1/charges': typeof ApiV1ChargesRouteWithChildren
   '/_authenticated/contas/': typeof AuthenticatedContasIndexRoute
   '/api/v1/charges/$id': typeof ApiV1ChargesIdRoute
+  '/api/v2/card-present/sessions': typeof ApiV2CardPresentSessionsRouteWithChildren
+  '/api/v2/card-present/sessions/$id': typeof ApiV2CardPresentSessionsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -186,12 +226,16 @@ export interface FileRouteTypes {
     | '/pagar/$id'
     | '/cobrancas/$id'
     | '/contas/$id'
+    | '/api/public/card-present-webhook'
     | '/api/public/efi-webhook'
     | '/api/public/picpay-webhook'
+    | '/api/public/reconcile-card-present'
     | '/api/public/reconcile-charges'
     | '/api/v1/charges'
     | '/contas/'
     | '/api/v1/charges/$id'
+    | '/api/v2/card-present/sessions'
+    | '/api/v2/card-present/sessions/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -204,12 +248,16 @@ export interface FileRouteTypes {
     | '/pagar/$id'
     | '/cobrancas/$id'
     | '/contas/$id'
+    | '/api/public/card-present-webhook'
     | '/api/public/efi-webhook'
     | '/api/public/picpay-webhook'
+    | '/api/public/reconcile-card-present'
     | '/api/public/reconcile-charges'
     | '/api/v1/charges'
     | '/contas'
     | '/api/v1/charges/$id'
+    | '/api/v2/card-present/sessions'
+    | '/api/v2/card-present/sessions/$id'
   id:
     | '__root__'
     | '/'
@@ -223,12 +271,16 @@ export interface FileRouteTypes {
     | '/pagar/$id'
     | '/_authenticated/cobrancas/$id'
     | '/_authenticated/contas/$id'
+    | '/api/public/card-present-webhook'
     | '/api/public/efi-webhook'
     | '/api/public/picpay-webhook'
+    | '/api/public/reconcile-card-present'
     | '/api/public/reconcile-charges'
     | '/api/v1/charges'
     | '/_authenticated/contas/'
     | '/api/v1/charges/$id'
+    | '/api/v2/card-present/sessions'
+    | '/api/v2/card-present/sessions/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -238,10 +290,13 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   PagarIdRoute: typeof PagarIdRoute
+  ApiPublicCardPresentWebhookRoute: typeof ApiPublicCardPresentWebhookRoute
   ApiPublicEfiWebhookRoute: typeof ApiPublicEfiWebhookRoute
   ApiPublicPicpayWebhookRoute: typeof ApiPublicPicpayWebhookRoute
+  ApiPublicReconcileCardPresentRoute: typeof ApiPublicReconcileCardPresentRoute
   ApiPublicReconcileChargesRoute: typeof ApiPublicReconcileChargesRoute
   ApiV1ChargesRoute: typeof ApiV1ChargesRouteWithChildren
+  ApiV2CardPresentSessionsRoute: typeof ApiV2CardPresentSessionsRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -330,6 +385,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedContasIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/card-present-webhook': {
+      id: '/api/public/card-present-webhook'
+      path: '/api/public/card-present-webhook'
+      fullPath: '/api/public/card-present-webhook'
+      preLoaderRoute: typeof ApiPublicCardPresentWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/efi-webhook': {
       id: '/api/public/efi-webhook'
       path: '/api/public/efi-webhook'
@@ -342,6 +404,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/picpay-webhook'
       fullPath: '/api/public/picpay-webhook'
       preLoaderRoute: typeof ApiPublicPicpayWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/reconcile-card-present': {
+      id: '/api/public/reconcile-card-present'
+      path: '/api/public/reconcile-card-present'
+      fullPath: '/api/public/reconcile-card-present'
+      preLoaderRoute: typeof ApiPublicReconcileCardPresentRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/reconcile-charges': {
@@ -364,6 +433,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/v1/charges/$id'
       preLoaderRoute: typeof ApiV1ChargesIdRouteImport
       parentRoute: typeof ApiV1ChargesRoute
+    }
+    '/api/v2/card-present/sessions': {
+      id: '/api/v2/card-present/sessions'
+      path: '/api/v2/card-present/sessions'
+      fullPath: '/api/v2/card-present/sessions'
+      preLoaderRoute: typeof ApiV2CardPresentSessionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v2/card-present/sessions/$id': {
+      id: '/api/v2/card-present/sessions/$id'
+      path: '/$id'
+      fullPath: '/api/v2/card-present/sessions/$id'
+      preLoaderRoute: typeof ApiV2CardPresentSessionsIdRouteImport
+      parentRoute: typeof ApiV2CardPresentSessionsRoute
     }
   }
 }
@@ -401,6 +484,20 @@ const ApiV1ChargesRouteWithChildren = ApiV1ChargesRoute._addFileChildren(
   ApiV1ChargesRouteChildren,
 )
 
+interface ApiV2CardPresentSessionsRouteChildren {
+  ApiV2CardPresentSessionsIdRoute: typeof ApiV2CardPresentSessionsIdRoute
+}
+
+const ApiV2CardPresentSessionsRouteChildren: ApiV2CardPresentSessionsRouteChildren =
+  {
+    ApiV2CardPresentSessionsIdRoute: ApiV2CardPresentSessionsIdRoute,
+  }
+
+const ApiV2CardPresentSessionsRouteWithChildren =
+  ApiV2CardPresentSessionsRoute._addFileChildren(
+    ApiV2CardPresentSessionsRouteChildren,
+  )
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
@@ -408,10 +505,13 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   PagarIdRoute: PagarIdRoute,
+  ApiPublicCardPresentWebhookRoute: ApiPublicCardPresentWebhookRoute,
   ApiPublicEfiWebhookRoute: ApiPublicEfiWebhookRoute,
   ApiPublicPicpayWebhookRoute: ApiPublicPicpayWebhookRoute,
+  ApiPublicReconcileCardPresentRoute: ApiPublicReconcileCardPresentRoute,
   ApiPublicReconcileChargesRoute: ApiPublicReconcileChargesRoute,
   ApiV1ChargesRoute: ApiV1ChargesRouteWithChildren,
+  ApiV2CardPresentSessionsRoute: ApiV2CardPresentSessionsRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
