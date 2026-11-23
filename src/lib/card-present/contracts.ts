@@ -61,6 +61,7 @@ export function methodOf(charge: { payment_method?: string }): "PIX" | "CARD_NFC
 export function canTransition(from: CardStatus, to: CardStatus): boolean {
   if (from === to) return true;
   if (from === "APPROVED") return to === "REFUNDED";
+  if (to === "REFUNDED") return false;
   if (["DECLINED", "CANCELED", "EXPIRED", "REFUNDED"].includes(from)) return false;
   return from !== "AWAITING_CARD" || to !== "CREATED";
 }

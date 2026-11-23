@@ -229,6 +229,7 @@ declare e public.card_present_events; s public.card_present_sessions; begin
   select * into s from public.card_present_sessions where id=e.session_id for update;
   if e.amount_cents<>s.amount_cents or (s.last_event_at is not null and e.signed_at<s.last_event_at)
     or (s.status='APPROVED' and e.status not in ('APPROVED','REFUNDED'))
+    or (e.status='REFUNDED' and s.status not in ('APPROVED','REFUNDED'))
     or (s.status in ('DECLINED','CANCELED','EXPIRED','REFUNDED') and e.status<>s.status)
     or (s.status='AWAITING_CARD' and e.status='CREATED') then
     update public.card_present_events set state='REJECTED',lease_id=null,lease_until=null where id=e.id;

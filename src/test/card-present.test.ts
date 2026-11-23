@@ -207,6 +207,7 @@ describe("Card sandbox contracts (no database schema applied)", () => {
     expect(canTransition("APPROVED", "REFUNDED")).toBe(true);
     expect(canTransition("CANCELED", "APPROVED")).toBe(false);
     expect(canTransition("EXPIRED", "APPROVED")).toBe(false);
+    expect(canTransition("AWAITING_CARD", "REFUNDED")).toBe(false);
     expect(canTransition("AWAITING_CARD", "CREATED")).toBe(false);
   });
 });

@@ -85,6 +85,7 @@ QR, cancelamento Asaas, emissão/sync Pix, adaptadores, webhooks, reconciliaçã
 - HTTP direto ao app: seis endpoints novos retornam 404 com flag desligada; v1 sem API key continua retornando 401. O cliente HTTP do Playwright retornou 400 vazio para aliases públicos, mas chamadas diretas retornaram 404; foi usada a verificação HTTP direta sem mudar controles do aplicativo para acomodar a ferramenta.
 - Consulta read-only confirmou ausência de `card_present_sessions` e `charges.payment_method` neste rascunho. Nenhum teste real de persistência cartão foi marcado como concluído. Emissão Pix real com adquirente também não foi executada nesta fase.
 - Sem conexão GitHub autorizada para consultar checks/proteção; abertura nativa do PR não comprova merge, CI remoto ou regras de main. Nenhum merge será realizado sem nova confirmação.
+- Um único pedido nativo de PR foi enviado para `nilton021/pix-cobran-as-r-pidas`, branch `thr_92wswy1b30ty` → `main`, em modo draft. A ferramenta confirmou **início da criação**, não retornou número/URL. Consulta pública inicial não encontrou PR dessa branch; proteção de main retornou 401. Criação concluída e CI remoto permanecem **não confirmados**; não duplicar o pedido.
 
 ## Próximos passos (nova autorização)
 
