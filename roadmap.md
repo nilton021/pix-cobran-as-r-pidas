@@ -1,6 +1,6 @@
 # Divulgação e publicação
 - [x] Preparar seleção PicPay, Banco Inter e Efí com salvamento na tela privada de credenciais; seleção e recusa de campos vazios verificadas com sessão autenticada
-- [ ] Solicitar publicação da página pública no endereço real após verificação de segurança
+- [x] Solicitar publicação da página pública no endereço real após verificação de segurança — publicação agendada; conclusão da implantação não confirmada
 - [x] Página pública Pix Charges com convite ao cadastro existente, sem contas ou cobranças, e compartilhamento
 - [x] Sitemap das páginas públicas, publicação e envio ao Google
 - [x] Verificar disponibilidade das funções das migrações 0016, 0018 e 0019 — as três funções de salvamento estão presentes no banco saudável; nenhuma migração reaplicada nesta solicitação
