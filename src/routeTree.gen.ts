@@ -29,7 +29,9 @@ import { Route as ApiPublicReconcileChargesRouteImport } from './routes/api/publ
 import { Route as ApiV1ChargesRouteImport } from './routes/api/v1/charges'
 import { Route as ApiV1ChargesIdRouteImport } from './routes/api/v1/charges/$id'
 import { Route as ApiV2CardPresentSessionsRouteImport } from './routes/api/v2/card-present/sessions'
+import { Route as ApiPublicV2CardPresentSessionsRouteImport } from './routes/api/public/v2/card-present/sessions'
 import { Route as ApiV2CardPresentSessionsIdRouteImport } from './routes/api/v2/card-present/sessions/$id'
+import { Route as ApiPublicV2CardPresentSessionsIdRouteImport } from './routes/api/public/v2/card-present/sessions/$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -138,11 +140,23 @@ const ApiV2CardPresentSessionsRoute =
     path: '/api/v2/card-present/sessions',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicV2CardPresentSessionsRoute =
+  ApiPublicV2CardPresentSessionsRouteImport.update({
+    id: '/api/public/v2/card-present/sessions',
+    path: '/api/public/v2/card-present/sessions',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiV2CardPresentSessionsIdRoute =
   ApiV2CardPresentSessionsIdRouteImport.update({
     id: '/$id',
     path: '/$id',
     getParentRoute: () => ApiV2CardPresentSessionsRoute,
+  } as any)
+const ApiPublicV2CardPresentSessionsIdRoute =
+  ApiPublicV2CardPresentSessionsIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => ApiPublicV2CardPresentSessionsRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -165,7 +179,9 @@ export interface FileRoutesByFullPath {
   '/contas/': typeof AuthenticatedContasIndexRoute
   '/api/v1/charges/$id': typeof ApiV1ChargesIdRoute
   '/api/v2/card-present/sessions': typeof ApiV2CardPresentSessionsRouteWithChildren
+  '/api/public/v2/card-present/sessions': typeof ApiPublicV2CardPresentSessionsRouteWithChildren
   '/api/v2/card-present/sessions/$id': typeof ApiV2CardPresentSessionsIdRoute
+  '/api/public/v2/card-present/sessions/$id': typeof ApiPublicV2CardPresentSessionsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -187,7 +203,9 @@ export interface FileRoutesByTo {
   '/contas': typeof AuthenticatedContasIndexRoute
   '/api/v1/charges/$id': typeof ApiV1ChargesIdRoute
   '/api/v2/card-present/sessions': typeof ApiV2CardPresentSessionsRouteWithChildren
+  '/api/public/v2/card-present/sessions': typeof ApiPublicV2CardPresentSessionsRouteWithChildren
   '/api/v2/card-present/sessions/$id': typeof ApiV2CardPresentSessionsIdRoute
+  '/api/public/v2/card-present/sessions/$id': typeof ApiPublicV2CardPresentSessionsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -211,7 +229,9 @@ export interface FileRoutesById {
   '/_authenticated/contas/': typeof AuthenticatedContasIndexRoute
   '/api/v1/charges/$id': typeof ApiV1ChargesIdRoute
   '/api/v2/card-present/sessions': typeof ApiV2CardPresentSessionsRouteWithChildren
+  '/api/public/v2/card-present/sessions': typeof ApiPublicV2CardPresentSessionsRouteWithChildren
   '/api/v2/card-present/sessions/$id': typeof ApiV2CardPresentSessionsIdRoute
+  '/api/public/v2/card-present/sessions/$id': typeof ApiPublicV2CardPresentSessionsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -235,7 +255,9 @@ export interface FileRouteTypes {
     | '/contas/'
     | '/api/v1/charges/$id'
     | '/api/v2/card-present/sessions'
+    | '/api/public/v2/card-present/sessions'
     | '/api/v2/card-present/sessions/$id'
+    | '/api/public/v2/card-present/sessions/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -257,7 +279,9 @@ export interface FileRouteTypes {
     | '/contas'
     | '/api/v1/charges/$id'
     | '/api/v2/card-present/sessions'
+    | '/api/public/v2/card-present/sessions'
     | '/api/v2/card-present/sessions/$id'
+    | '/api/public/v2/card-present/sessions/$id'
   id:
     | '__root__'
     | '/'
@@ -280,7 +304,9 @@ export interface FileRouteTypes {
     | '/_authenticated/contas/'
     | '/api/v1/charges/$id'
     | '/api/v2/card-present/sessions'
+    | '/api/public/v2/card-present/sessions'
     | '/api/v2/card-present/sessions/$id'
+    | '/api/public/v2/card-present/sessions/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -297,6 +323,7 @@ export interface RootRouteChildren {
   ApiPublicReconcileChargesRoute: typeof ApiPublicReconcileChargesRoute
   ApiV1ChargesRoute: typeof ApiV1ChargesRouteWithChildren
   ApiV2CardPresentSessionsRoute: typeof ApiV2CardPresentSessionsRouteWithChildren
+  ApiPublicV2CardPresentSessionsRoute: typeof ApiPublicV2CardPresentSessionsRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -441,12 +468,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV2CardPresentSessionsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/v2/card-present/sessions': {
+      id: '/api/public/v2/card-present/sessions'
+      path: '/api/public/v2/card-present/sessions'
+      fullPath: '/api/public/v2/card-present/sessions'
+      preLoaderRoute: typeof ApiPublicV2CardPresentSessionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/v2/card-present/sessions/$id': {
       id: '/api/v2/card-present/sessions/$id'
       path: '/$id'
       fullPath: '/api/v2/card-present/sessions/$id'
       preLoaderRoute: typeof ApiV2CardPresentSessionsIdRouteImport
       parentRoute: typeof ApiV2CardPresentSessionsRoute
+    }
+    '/api/public/v2/card-present/sessions/$id': {
+      id: '/api/public/v2/card-present/sessions/$id'
+      path: '/$id'
+      fullPath: '/api/public/v2/card-present/sessions/$id'
+      preLoaderRoute: typeof ApiPublicV2CardPresentSessionsIdRouteImport
+      parentRoute: typeof ApiPublicV2CardPresentSessionsRoute
     }
   }
 }
@@ -498,6 +539,21 @@ const ApiV2CardPresentSessionsRouteWithChildren =
     ApiV2CardPresentSessionsRouteChildren,
   )
 
+interface ApiPublicV2CardPresentSessionsRouteChildren {
+  ApiPublicV2CardPresentSessionsIdRoute: typeof ApiPublicV2CardPresentSessionsIdRoute
+}
+
+const ApiPublicV2CardPresentSessionsRouteChildren: ApiPublicV2CardPresentSessionsRouteChildren =
+  {
+    ApiPublicV2CardPresentSessionsIdRoute:
+      ApiPublicV2CardPresentSessionsIdRoute,
+  }
+
+const ApiPublicV2CardPresentSessionsRouteWithChildren =
+  ApiPublicV2CardPresentSessionsRoute._addFileChildren(
+    ApiPublicV2CardPresentSessionsRouteChildren,
+  )
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
@@ -512,6 +568,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicReconcileChargesRoute: ApiPublicReconcileChargesRoute,
   ApiV1ChargesRoute: ApiV1ChargesRouteWithChildren,
   ApiV2CardPresentSessionsRoute: ApiV2CardPresentSessionsRouteWithChildren,
+  ApiPublicV2CardPresentSessionsRoute:
+    ApiPublicV2CardPresentSessionsRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

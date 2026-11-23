@@ -70,3 +70,14 @@ cd <repository-name>
 npm i
 npm run dev
 ```
+
+## Cartão por aproximação (fase 1: backend)
+
+Extensão aditiva **somente neste rascunho**, desativada por padrão (`CARD_NFC_ENABLED` e espelho `VITE_CARD_NFC_ENABLED` ausentes/false). Inclui contrato abstrato, MOCK/SANDBOX sem pagamentos reais, API de sessão com API key/limites/idempotência/auditoria, webhook assinado e proposta de fila durável/reconciliação independente, configuração e botão condicionados. Não implementa leitura NFC no navegador nem conexão Mercado Pago real; não altera o Pix original.
+
+- [Contrato, limites e próximos passos](docs/card-present-phase-1.md).
+- [Proposta SQL sequencial 0022 — NÃO APLICADA](docs/proposals/0022_card_present.sql): fora das migrations gerenciadas; journal/pipeline preservados. A ferramenta cria **e aplica** migrations, portanto a proibição de aplicar schema exige manter esta entrega como proposta documentada. Promoção/aplicação somente após confirmação pelo fluxo autorizado, sem contornar `apply-phase-22-migrations`.
+- `/api/v2/charges` **não existe nesta base**. A v1 existente não é substituída; as sessões de cartão usam novas rotas exclusivas.
+- Isolamento, concorrência e persistência de cartão em PostgreSQL dependem de schema autorizado; não declarar integração aprovada antes desses testes. CI remoto e proteção de main exigem acesso verificável ao GitHub.
+- Entrega por branch do rascunho → um único PR → CI verificado → merge **somente após nova confirmação**. Não aceitar/publicar este rascunho ou habilitar cron automaticamente.
+- Fases futuras: Capacitor nativo, contrato com adquirente, SDK oficial, testes de homologação e certificações. Nenhum PAN, CVV, validade ou trilha pode ser enviado a este backend.

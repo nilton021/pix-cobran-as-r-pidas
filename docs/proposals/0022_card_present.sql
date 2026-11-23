@@ -55,7 +55,7 @@ create index if not exists card_present_expiration_idx on public.card_present_se
 
 create table if not exists public.card_present_requests (
   account_id uuid not null references public.accounts(id), actor_id uuid not null,
-  idempotency_key text not null check(length(idempotency_key) between 1 and 255 and idempotency_key ~ '^[A-Za-z0-9_-]+$'),
+  idempotency_key text not null check(length(idempotency_key) between 1 and 255 and idempotency_key ~ '^[A-Za-z0-9_-]+$' and idempotency_key !~ '[0-9]{12,19}'),
   request_hash text not null, session_id uuid not null references public.card_present_sessions(id),
   created_at timestamptz not null default now(), primary key(account_id,actor_id,idempotency_key)
 );
