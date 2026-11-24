@@ -234,6 +234,240 @@ export type Database = {
         }
         Relationships: []
       }
+      card_present_events: {
+        Row: {
+          amount_cents: number
+          attempts: number
+          event_id: string
+          id: string
+          lease_id: string | null
+          lease_until: string | null
+          payload_hash: string
+          payment_integration_id: string
+          received_at: string
+          session_id: string
+          signed_at: string
+          state: string
+          status: string
+        }
+        Insert: {
+          amount_cents: number
+          attempts?: number
+          event_id: string
+          id?: string
+          lease_id?: string | null
+          lease_until?: string | null
+          payload_hash: string
+          payment_integration_id: string
+          received_at?: string
+          session_id: string
+          signed_at: string
+          state?: string
+          status: string
+        }
+        Update: {
+          amount_cents?: number
+          attempts?: number
+          event_id?: string
+          id?: string
+          lease_id?: string | null
+          lease_until?: string | null
+          payload_hash?: string
+          payment_integration_id?: string
+          received_at?: string
+          session_id?: string
+          signed_at?: string
+          state?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_present_events_payment_integration_id_fkey"
+            columns: ["payment_integration_id"]
+            isOneToOne: false
+            referencedRelation: "payment_integrations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "card_present_events_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "card_present_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      card_present_rate_buckets: {
+        Row: {
+          account_id: string
+          actor_id: string
+          hits: number
+          window_start: string
+        }
+        Insert: {
+          account_id: string
+          actor_id: string
+          hits: number
+          window_start: string
+        }
+        Update: {
+          account_id?: string
+          actor_id?: string
+          hits?: number
+          window_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_present_rate_buckets_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      card_present_requests: {
+        Row: {
+          account_id: string
+          actor_id: string
+          created_at: string
+          idempotency_key: string
+          request_hash: string
+          session_id: string
+        }
+        Insert: {
+          account_id: string
+          actor_id: string
+          created_at?: string
+          idempotency_key: string
+          request_hash: string
+          session_id: string
+        }
+        Update: {
+          account_id?: string
+          actor_id?: string
+          created_at?: string
+          idempotency_key?: string
+          request_hash?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_present_requests_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "card_present_requests_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "card_present_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      card_present_sessions: {
+        Row: {
+          account_id: string
+          amount_cents: number
+          charge_id: string
+          created_at: string
+          device_id: string | null
+          expires_at: string
+          external_reference: string | null
+          id: string
+          last_event_at: string | null
+          payment_integration_id: string
+          provider: string
+          provider_session_id: string
+          request_hash: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          account_id: string
+          amount_cents: number
+          charge_id: string
+          created_at?: string
+          device_id?: string | null
+          expires_at: string
+          external_reference?: string | null
+          id?: string
+          last_event_at?: string | null
+          payment_integration_id: string
+          provider: string
+          provider_session_id: string
+          request_hash: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string
+          amount_cents?: number
+          charge_id?: string
+          created_at?: string
+          device_id?: string | null
+          expires_at?: string
+          external_reference?: string | null
+          id?: string
+          last_event_at?: string | null
+          payment_integration_id?: string
+          provider?: string
+          provider_session_id?: string
+          request_hash?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_present_sessions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "card_present_sessions_charge_id_account_id_payment_integra_fkey"
+            columns: [
+              "charge_id",
+              "account_id",
+              "payment_integration_id",
+              "amount_cents",
+            ]
+            isOneToOne: false
+            referencedRelation: "charges"
+            referencedColumns: [
+              "id",
+              "account_id",
+              "payment_integration_id",
+              "amount_cents",
+            ]
+          },
+          {
+            foreignKeyName: "card_present_sessions_charge_id_fkey"
+            columns: ["charge_id"]
+            isOneToOne: true
+            referencedRelation: "charges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "card_present_sessions_payment_integration_id_account_id_fkey"
+            columns: ["payment_integration_id", "account_id"]
+            isOneToOne: false
+            referencedRelation: "payment_integrations"
+            referencedColumns: ["id", "account_id"]
+          },
+          {
+            foreignKeyName: "card_present_sessions_payment_integration_id_fkey"
+            columns: ["payment_integration_id"]
+            isOneToOne: false
+            referencedRelation: "payment_integrations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       charges: {
         Row: {
           account_id: string
@@ -247,6 +481,7 @@ export type Database = {
           paid_at: string | null
           payer: Json | null
           payment_integration_id: string | null
+          payment_method: string
           picpay_charge_id: string | null
           provider_charge_id: string | null
           qr_code: string | null
@@ -266,6 +501,7 @@ export type Database = {
           paid_at?: string | null
           payer?: Json | null
           payment_integration_id?: string | null
+          payment_method?: string
           picpay_charge_id?: string | null
           provider_charge_id?: string | null
           qr_code?: string | null
@@ -285,6 +521,7 @@ export type Database = {
           paid_at?: string | null
           payer?: Json | null
           payment_integration_id?: string | null
+          payment_method?: string
           picpay_charge_id?: string | null
           provider_charge_id?: string | null
           qr_code?: string | null
@@ -447,6 +684,52 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      card_nfc_claim_events: { Args: { p_lease: string }; Returns: Json }
+      card_nfc_consume_limit: {
+        Args: { p_account_id: string; p_actor_id: string }
+        Returns: boolean
+      }
+      card_nfc_create_session: {
+        Args: {
+          p_account_id: string
+          p_actor_id: string
+          p_amount: number
+          p_device_id: string
+          p_hash: string
+          p_integration_id: string
+          p_key: string
+          p_provider_session_id: string
+          p_reference: string
+          p_session_id: string
+        }
+        Returns: Json
+      }
+      card_nfc_enqueue_event: {
+        Args: {
+          p_amount: number
+          p_event_id: string
+          p_hash: string
+          p_integration_id: string
+          p_provider_session_id: string
+          p_signed_at: string
+          p_status: string
+        }
+        Returns: boolean
+      }
+      card_nfc_expire_sessions: { Args: never; Returns: undefined }
+      card_nfc_finish_event: {
+        Args: { p_id: string; p_lease: string }
+        Returns: undefined
+      }
+      card_nfc_prepare_mock: {
+        Args: { p_account_id: string; p_user_id: string }
+        Returns: string
+      }
+      card_nfc_read_session: {
+        Args: { p_account_id: string; p_id: string }
+        Returns: Json
+      }
+      card_nfc_require_service: { Args: never; Returns: undefined }
       consume_api_rate_limit: {
         Args: {
           p_api_key_id: string
